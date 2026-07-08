@@ -38,6 +38,19 @@ export default function Shop() {
   useEffect(() => {
     fetchProducts();
     fetchUserProfile();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!session) {
+        // Aggressively clear state to prevent cross-account leakage
+        setWishlist([]);
+        localStorage.removeItem('wishlist');
+        setCurrentUser(null);
+      } else if (event === 'SIGNED_IN') {
+        fetchUserProfile();
+      }
+    });
+
+    return () => authListener.subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -79,14 +92,14 @@ export default function Shop() {
         address: profile?.address || ''
       });
 
-      // Merge wishlist: if DB is empty but local storage has items, preserve local storage and sync to DB
+      // Always trust the database for logged in users to ensure cross-device syncing
       const dbWishlist = profile?.wishlist || [];
-      if (dbWishlist.length === 0 && wishlist.length > 0) {
-        // Local storage has items, DB is empty -> sync UP to DB
-        supabase.from('profiles').update({ wishlist }).eq('id', user.id).then();
-      } else {
-        // DB has items (or both are empty) -> sync DOWN to local state
-        setWishlist(dbWishlist);
+      if (dbWishlist.length > 0 || wishlist.length === 0) {
+         // DB has items, or both are empty -> sync DOWN to local state
+         setWishlist(dbWishlist);
+      } else if (dbWishlist.length === 0 && wishlist.length > 0) {
+         // Edge case: DB is empty, but local storage has items (e.g. guest who just created an account)
+         supabase.from('profiles').update({ wishlist }).eq('id', user.id).then();
       }
 
       const { data: userOrders } = await supabase.from('orders').select('*').eq('user_id', user.id).order('id', { ascending: false });

@@ -29,7 +29,7 @@ export function CartProvider({ children }) {
         setUserId(session.user.id);
         supabase.from('profiles').select('cart').eq('id', session.user.id).single()
           .then(({ data }) => {
-            if (data && data.cart && Array.isArray(data.cart) && data.cart.length > 0) {
+            if (data && data.cart && Array.isArray(data.cart)) {
                setCart(data.cart);
             }
           });
@@ -39,8 +39,19 @@ export function CartProvider({ children }) {
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         setUserId(session.user.id);
+        if (event === 'SIGNED_IN') {
+           // Fetch fresh cart from DB immediately when a user logs in (to overwrite any dirty local state)
+           supabase.from('profiles').select('cart').eq('id', session.user.id).single()
+             .then(({ data }) => {
+                if (data && Array.isArray(data.cart)) {
+                   setCart(data.cart);
+                }
+             });
+        }
       } else {
         setUserId(null);
+        setCart([]); // Completely wipe cart from memory when logged out
+        localStorage.removeItem('novaboard_cart'); // Completely wipe cart from storage
       }
     });
     return () => authListener.subscription.unsubscribe();
