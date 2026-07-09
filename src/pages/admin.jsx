@@ -371,7 +371,7 @@ function ProductModal({ product, categories, onSave, onClose, imageFile, setImag
         <select
           value={form.category}
           onChange={(e) => setForm({...form, category: e.target.value})}
-          className="border p-2 rounded w-full">
+          className="border-2 border-indigo-500 bg-white text-gray-800 hover:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-600 cursor-pointer px-4 py-2 min-w-[160px] rounded-lg shadow-sm transition-all duration-200 w-full mb-4">
           <option value="">Select Category</option>
           <option value="Electronics">Electronics</option>
           <option value="Fashion">Fashion</option>
@@ -380,7 +380,11 @@ function ProductModal({ product, categories, onSave, onClose, imageFile, setImag
           <option value="Sports">Sports</option>
           <option value="Books">Books</option>
         </select>
-        <select value={form.status || 'active'} onChange={(e) => setForm({...form, status: e.target.value })}>
+        <select 
+          value={form.status || 'active'} 
+          onChange={(e) => setForm({...form, status: e.target.value })}
+          className="border-2 border-indigo-500 bg-white text-gray-800 hover:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-600 cursor-pointer px-4 py-2 min-w-[160px] rounded-lg shadow-sm transition-all duration-200 w-full mb-4"
+        >
           <option value="active">Active</option>
           <option value="out_of_stock">Out of Stock</option>
         </select>
