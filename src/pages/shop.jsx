@@ -7,14 +7,7 @@ import { useCart } from '../context/CartContext';
 
 export default function Shop() {
   const { cart, addToCart, updateQty, removeFromCart, cartTotal } = useCart();
-  const [wishlist, setWishlist] = useState(() => {
-    try {
-      const saved = localStorage.getItem('wishlist');
-      return saved && saved !== 'undefined' ? JSON.parse(saved) : [];
-    } catch (e) {
-      return [];
-    }
-  });
+  const [wishlist, setWishlist] = useState([]);
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState('');
   const [toast, setToast] = useState('');
@@ -43,7 +36,6 @@ export default function Shop() {
       if (!session) {
         // Aggressively clear state to prevent cross-account leakage
         setWishlist([]);
-        localStorage.removeItem('wishlist');
         setCurrentUser(null);
       } else if (event === 'SIGNED_IN') {
         fetchUserProfile();
@@ -53,9 +45,7 @@ export default function Shop() {
     return () => authListener.subscription.unsubscribe();
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('wishlist', JSON.stringify(wishlist));
-  }, [wishlist]);
+  // Local storage effect removed
 
   const fetchProducts = async () => {
     const { data: productsData, error: productsError } = await supabase.from('products').select('*').order('id', { ascending: false });
@@ -92,15 +82,7 @@ export default function Shop() {
         address: profile?.address || ''
       });
 
-      // Always trust the database for logged in users to ensure cross-device syncing
-      const dbWishlist = profile?.wishlist || [];
-      if (dbWishlist.length > 0 || wishlist.length === 0) {
-         // DB has items, or both are empty -> sync DOWN to local state
-         setWishlist(dbWishlist);
-      } else if (dbWishlist.length === 0 && wishlist.length > 0) {
-         // Edge case: DB is empty, but local storage has items (e.g. guest who just created an account)
-         supabase.from('profiles').update({ wishlist }).eq('id', user.id).then();
-      }
+      fetchWishlist(user.id);
 
       const { data: userOrders } = await supabase.from('orders').select('*').eq('user_id', user.id).order('id', { ascending: false });
       setMyOrders(userOrders || []);
@@ -110,7 +92,6 @@ export default function Shop() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setWishlist([]); // Clear state
-    localStorage.removeItem('wishlist'); // Clear local storage
     setCurrentUser(null);
     navigate('/');
   };
@@ -131,22 +112,58 @@ export default function Shop() {
     navigate('/checkout', { state: { cart: orderItems } });
   };
 
-  const toggleWishlist = (product) => {
-    let newWishlist;
-    if (wishlist.find(item => item.id === product.id)) {
-      newWishlist = wishlist.filter(item => item.id !== product.id);
-      showToast('Removed from wishlist');
-    } else {
-      newWishlist = [...wishlist, product];
-      showToast('Added to wishlist!');
+  const fetchWishlist = async (uid) => {
+    if (!uid) {
+      setWishlist([]);
+      return;
     }
-    setWishlist(newWishlist);
-    
-    // Explicitly sync to database only when user takes an action
-    if (currentUser?.id) {
-      supabase.from('profiles').update({ wishlist: newWishlist }).eq('id', currentUser.id).then(({ error }) => {
-        if (error) console.error('Failed to update wishlist in DB:', error);
-      });
+    const { data, error } = await supabase
+      .from('wishlist_items')
+      .select(`id, products (*)`)
+      .eq('user_id', uid);
+      
+    if (data) {
+      const formattedWishlist = data
+        .filter(item => item.products)
+        .map(item => ({
+          ...item.products,
+          wishlist_item_id: item.id
+        }));
+      setWishlist(formattedWishlist);
+    }
+  };
+
+  const toggleWishlist = async (product) => {
+    if (!currentUser) {
+      alert("Please login to add to wishlist");
+      return;
+    }
+
+    const isWishlisted = wishlist.find(item => item.id === product.id);
+
+    if (isWishlisted) {
+      // Remove from DB
+      await supabase
+        .from('wishlist_items')
+        .delete()
+        .eq('user_id', currentUser.id)
+        .eq('product_id', product.id);
+      showToast('Removed from wishlist');
+      setWishlist(wishlist.filter(item => item.id !== product.id));
+    } else {
+      // Add to DB
+      const { data, error } = await supabase
+        .from('wishlist_items')
+        .insert([{ user_id: currentUser.id, product_id: product.id }])
+        .select()
+        .single();
+        
+      if (!error && data) {
+        showToast('Added to wishlist!');
+        setWishlist([...wishlist, { ...product, wishlist_item_id: data.id }]);
+      } else {
+        showToast('Failed to update wishlist');
+      }
     }
   };
 
