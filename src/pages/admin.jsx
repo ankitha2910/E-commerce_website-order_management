@@ -272,7 +272,7 @@ export default function App() {
   );
 }
 
-const CustomSelect = ({ value, onChange, options, placeholder, className }) => {
+const CustomSelect = ({ value, onChange, options, placeholder, className, style, disabled }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -291,8 +291,9 @@ const CustomSelect = ({ value, onChange, options, placeholder, className }) => {
   return (
     <div className={`relative ${className || ''}`} ref={dropdownRef}>
       <div 
-        className="border-2 border-indigo-500 bg-white text-gray-800 hover:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer px-4 py-2 min-w-[160px] rounded-lg shadow-sm transition-all duration-200 flex justify-between items-center"
-        onClick={() => setIsOpen(!isOpen)}
+        className={`border-2 border-indigo-500 bg-white text-gray-800 hover:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer px-4 py-2 min-w-[160px] rounded-lg shadow-sm transition-all duration-200 flex justify-between items-center ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
+        style={style}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
       >
         <span className="truncate mr-4">{selectedOption ? selectedOption.label : placeholder}</span>
         <span className="text-indigo-500 text-xs">▼</span>
@@ -419,26 +420,30 @@ function ProductModal({ product, categories, onSave, onClose, imageFile, setImag
           <input type="number" placeholder="Stock Quantity" value={form.stock_quantity} onChange={(e) => setForm({...form, stock_quantity: e.target.value })} required />
         </div>
         <label className="block text-sm font-medium">Category</label>
-        <select
+        <CustomSelect
           value={form.category}
-          onChange={(e) => setForm({...form, category: e.target.value})}
-          className="border-2 border-indigo-500 bg-white text-gray-800 hover:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-600 cursor-pointer px-4 py-2 min-w-[160px] rounded-lg shadow-sm transition-all duration-200 w-full mb-4">
-          <option value="">Select Category</option>
-          <option value="Electronics">Electronics</option>
-          <option value="Fashion">Fashion</option>
-          <option value="Home & Kitchen">Home & Kitchen</option>
-          <option value="Beauty">Beauty</option>
-          <option value="Sports">Sports</option>
-          <option value="Books">Books</option>
-        </select>
-        <select 
+          onChange={(val) => setForm({...form, category: val})}
+          placeholder="Select Category"
+          options={[
+            { label: 'Electronics', value: 'Electronics' },
+            { label: 'Fashion', value: 'Fashion' },
+            { label: 'Home & Kitchen', value: 'Home & Kitchen' },
+            { label: 'Beauty', value: 'Beauty' },
+            { label: 'Sports', value: 'Sports' },
+            { label: 'Books', value: 'Books' }
+          ]}
+          className="w-full mb-4"
+        />
+        <CustomSelect 
           value={form.status || 'active'} 
-          onChange={(e) => setForm({...form, status: e.target.value })}
-          className="border-2 border-indigo-500 bg-white text-gray-800 hover:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-600 cursor-pointer px-4 py-2 min-w-[160px] rounded-lg shadow-sm transition-all duration-200 w-full mb-4"
-        >
-          <option value="active">Active</option>
-          <option value="out_of_stock">Out of Stock</option>
-        </select>
+          onChange={(val) => setForm({...form, status: val })}
+          placeholder="Select Status"
+          options={[
+            { label: 'Active', value: 'active' },
+            { label: 'Out of Stock', value: 'out_of_stock' }
+          ]}
+          className="w-full mb-4"
+        />
         <div style={{ display: 'flex', gap: 14, marginTop: 28 }}>
           <button type="button" className="btn" style={{ flex: 1, background: '#f1f5f9', justifyContent: 'center' }} onClick={onClose}>Cancel</button>
           <button type="submit" className="btn btn-primary" style={{ flex: 1, justifyContent: 'center' }}>{product? 'Update' : 'Create'} Product</button>
@@ -625,9 +630,9 @@ function OrdersPage({ orders, customers, updateStatus, downloadInvoice, onAdd })
           <td><div><p style={{ fontWeight: 700 }}>{order.customer_name}</p><p style={{ fontSize: 12, color: '#64748b' }}>{order.customer_email}</p></div></td>
           <td style={{ fontWeight: 800 }}>₹{order.total_amount}</td>
           <td>
-            <select 
+            <CustomSelect 
               value={order.status || 'Pending'} 
-              onChange={(e) => handleStatusChange(order.id, e.target.value)} 
+              onChange={(val) => handleStatusChange(order.id, val)} 
               disabled={updatingId === order.id}
               style={{ 
                 padding: '8px 12px', 
@@ -637,20 +642,16 @@ function OrdersPage({ orders, customers, updateStatus, downloadInvoice, onAdd })
                 color: colors.text,
                 fontSize: '13px', 
                 fontWeight: '800', 
-                margin: 0,
-                cursor: updatingId === order.id ? 'not-allowed' : 'pointer',
-                opacity: updatingId === order.id ? 0.6 : 1,
-                outline: 'none',
-                WebkitAppearance: 'none',
-                MozAppearance: 'none',
-                appearance: 'none',
-                textAlign: 'center'
-              }}>
-              <option value="Pending">Pending</option>
-              <option value="Shipped">Shipped</option>
-              <option value="Delivered">Delivered</option>
-              <option value="Cancelled">Cancelled</option>
-            </select>
+                margin: 0
+              }}
+              options={[
+                { label: 'Pending', value: 'Pending' },
+                { label: 'Shipped', value: 'Shipped' },
+                { label: 'Delivered', value: 'Delivered' },
+                { label: 'Cancelled', value: 'Cancelled' }
+              ]}
+              className="min-w-[130px]"
+            />
           </td>
           <td>{new Date(order.created_at).toLocaleDateString()}</td>
           <td><button className="btn btn-primary" onClick={() => downloadInvoice(order)}><Download size={18} /> Invoice</button></td>
