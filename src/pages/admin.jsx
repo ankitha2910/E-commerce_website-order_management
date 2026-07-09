@@ -501,8 +501,15 @@ function ProductsPage({ products, categories, productView, setProductView, searc
     <div className="header"><h1 style={{ fontSize: 40, fontWeight: 900, color: '#0f172a' }}>Products</h1><button className="btn btn-primary" onClick={onAdd}><Plus size={20} /> Add Product</button></div>
     <div className="card"><div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: 16, marginBottom: 28 }}>
       <div style={{ position: 'relative' }}><Search size={20} style={{ position: 'absolute', left: 16, top: 16, color: '#94a3b8' }} /><input type="text" placeholder="Search products..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ paddingLeft: 48, margin: 0 }} /></div>
-      <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} style={{ margin: 0 }}><option value="">All Categories</option>{categories.map(c => <option key={c}>{c}</option>)}</select>
-      <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ margin: 0 }}><option value="">All Status</option><option value="active">Active</option><option value="out_of_stock">Out of Stock</option></select>
+      <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="border-2 border-indigo-500 bg-white text-gray-800 hover:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-600 cursor-pointer px-4 py-2 min-w-[160px] rounded-lg shadow-sm transition-all duration-200">
+        <option value="">All Categories</option>
+        {categories.map(c => <option key={c}>{c}</option>)}
+      </select>
+      <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="border-2 border-indigo-500 bg-white text-gray-800 hover:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-600 cursor-pointer px-4 py-2 min-w-[160px] rounded-lg shadow-sm transition-all duration-200">
+        <option value="">All Status</option>
+        <option value="active">Active</option>
+        <option value="out_of_stock">Out of Stock</option>
+      </select>
       <button className="btn" style={{ background: productView === 'table'? '#e2e8f0' : 'transparent', margin: 0, padding: '14px' }} onClick={() => setProductView('table')}><List size={20} /></button>
       <button className="btn" style={{ background: productView === 'grid'? '#e2e8f0' : 'transparent', margin: 0, padding: '14px' }} onClick={() => setProductView('grid')}><Grid size={20} /></button>
     </div>
