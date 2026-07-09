@@ -61,6 +61,7 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
+  const [adminInviteCode, setAdminInviteCode] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -77,6 +78,10 @@ export default function Auth() {
     // Basic Validation
     if (!email.trim() || !password) {
       setError('Please fill in all required fields.');
+      return;
+    }
+    if (!isLogin && selectedRole === 'admin' && adminInviteCode !== 'NOVA-2026') {
+      setError('Invalid Admin Invite Code. Please contact system administrator.');
       return;
     }
     if (!isLogin && (!fullName.trim() || !mobileNumber.trim())) {
@@ -327,6 +332,21 @@ export default function Auth() {
                   className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
                 />
               </div>
+
+              {selectedRole === 'admin' && (
+                <div className="mb-4">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Admin Invite Code</label>
+                  <input
+                    type="text"
+                    placeholder="Enter secret code"
+                    value={adminInviteCode}
+                    onChange={(e) => { setAdminInviteCode(e.target.value); setError(''); }}
+                    disabled={loading}
+                    required
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
+                  />
+                </div>
+              )}
             </>
           )}
 
