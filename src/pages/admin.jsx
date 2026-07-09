@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { LogOut, Package, ShoppingCart, Users, LayoutDashboard, Plus, Search, Grid, List, Edit, Trash2, Download, TrendingUp, AlertTriangle } from 'lucide-react';
@@ -272,6 +272,57 @@ export default function App() {
   );
 }
 
+const CustomSelect = ({ value, onChange, options, placeholder, className }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find(opt => opt.value === value);
+
+  return (
+    <div className={`relative ${className || ''}`} ref={dropdownRef}>
+      <div 
+        className="border-2 border-indigo-500 bg-white text-gray-800 hover:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer px-4 py-2 min-w-[160px] rounded-lg shadow-sm transition-all duration-200 flex justify-between items-center"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className="truncate mr-4">{selectedOption ? selectedOption.label : placeholder}</span>
+        <span className="text-indigo-500 text-xs">▼</span>
+      </div>
+      
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-2 bg-white border-2 border-indigo-100 rounded-lg shadow-2xl max-h-60 overflow-y-auto">
+          {placeholder && (
+            <div 
+              className="px-4 py-3 cursor-pointer hover:bg-indigo-50 text-gray-700 border-b border-gray-100 font-semibold"
+              onClick={() => { onChange(''); setIsOpen(false); }}
+            >
+              {placeholder}
+            </div>
+          )}
+          {options.map((opt) => (
+            <div 
+              key={opt.value}
+              className="px-4 py-3 cursor-pointer hover:bg-indigo-50 text-gray-700 border-b border-gray-50 last:border-0"
+              onClick={() => { onChange(opt.value); setIsOpen(false); }}
+            >
+              {opt.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 function GlobalStyle() {
   return <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -505,15 +556,18 @@ function ProductsPage({ products, categories, productView, setProductView, searc
     <div className="header"><h1 style={{ fontSize: 40, fontWeight: 900, color: '#0f172a' }}>Products</h1><button className="btn btn-primary" onClick={onAdd}><Plus size={20} /> Add Product</button></div>
     <div className="card"><div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: 16, marginBottom: 28 }}>
       <div style={{ position: 'relative' }}><Search size={20} style={{ position: 'absolute', left: 16, top: 16, color: '#94a3b8' }} /><input type="text" placeholder="Search products..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ paddingLeft: 48, margin: 0 }} /></div>
-      <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="border-2 border-indigo-500 bg-white text-gray-800 hover:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-600 cursor-pointer px-4 py-2 min-w-[160px] rounded-lg shadow-sm transition-all duration-200">
-        <option value="">All Categories</option>
-        {categories.map(c => <option key={c}>{c}</option>)}
-      </select>
-      <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="border-2 border-indigo-500 bg-white text-gray-800 hover:border-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-600 cursor-pointer px-4 py-2 min-w-[160px] rounded-lg shadow-sm transition-all duration-200">
-        <option value="">All Status</option>
-        <option value="active">Active</option>
-        <option value="out_of_stock">Out of Stock</option>
-      </select>
+      <CustomSelect 
+        value={categoryFilter} 
+        onChange={setCategoryFilter} 
+        placeholder="All Categories"
+        options={categories.map(c => ({ label: c, value: c }))} 
+      />
+      <CustomSelect 
+        value={statusFilter} 
+        onChange={setStatusFilter} 
+        placeholder="All Status"
+        options={[ {label: 'Active', value: 'active'}, {label: 'Out of Stock', value: 'out_of_stock'} ]} 
+      />
       <button className="btn" style={{ background: productView === 'table'? '#e2e8f0' : 'transparent', margin: 0, padding: '14px' }} onClick={() => setProductView('table')}><List size={20} /></button>
       <button className="btn" style={{ background: productView === 'grid'? '#e2e8f0' : 'transparent', margin: 0, padding: '14px' }} onClick={() => setProductView('grid')}><Grid size={20} /></button>
     </div>
