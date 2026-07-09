@@ -1,6 +1,58 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
+
+const CustomSelect = ({ value, onChange, options, placeholder, className, style, disabled }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find(opt => opt.value === value);
+
+  return (
+    <div className={`relative ${className || ''}`} ref={dropdownRef}>
+      <div 
+        className={`w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:border-indigo-500 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all cursor-pointer flex justify-between items-center ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
+        style={style}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+      >
+        <span className="truncate mr-4">{selectedOption ? selectedOption.label : placeholder}</span>
+        <span className="text-gray-400 text-xs">▼</span>
+      </div>
+      
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-xl max-h-60 overflow-y-auto">
+          {placeholder && (
+            <div 
+              className="px-4 py-3 cursor-pointer hover:bg-gray-50 text-gray-700 border-b border-gray-100 font-semibold"
+              onClick={() => { onChange(''); setIsOpen(false); }}
+            >
+              {placeholder}
+            </div>
+          )}
+          {options.map((opt) => (
+            <div 
+              key={opt.value}
+              className="px-4 py-3 cursor-pointer hover:bg-gray-50 text-gray-700 border-b border-gray-50 last:border-0"
+              onClick={() => { onChange(opt.value); setIsOpen(false); }}
+            >
+              {opt.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true); // Toggle between Login and Signup
@@ -235,15 +287,16 @@ export default function Auth() {
           {/* Login As Dropdown */}
           <div className="mb-4">
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Login As</label>
-            <select
+            <CustomSelect
               value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
+              onChange={(val) => setSelectedRole(val)}
               disabled={loading}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all cursor-pointer"
-            >
-              <option value="customer">👤 Customer</option>
-              <option value="admin">👨‍💼 Admin</option>
-            </select>
+              options={[
+                { label: '👤 Customer', value: 'customer' },
+                { label: '👨‍💼 Admin', value: 'admin' }
+              ]}
+              className="w-full"
+            />
           </div>
 
           {/* Signup Specific Fields */}
