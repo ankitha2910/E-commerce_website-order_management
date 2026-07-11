@@ -15,6 +15,7 @@ import CustomerOrders from './pages/CustomerOrders';
 import CustomerProfileEdit from './pages/CustomerProfileEdit';
 import ContactUs from './pages/ContactUs';
 import ResetPassword from './pages/ResetPassword';
+import Landing from './pages/Landing';
 import { CartProvider } from './context/CartContext';
 
 // Dynamic dashboard route resolver
@@ -61,25 +62,36 @@ function DashboardRedirect() {
 
 function App() {
   const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setUser(data.session?.user);
+      setAuthLoading(false);
     });
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user);
+      setAuthLoading(false);
     });
     
     return () => subscription.unsubscribe();
   }, []);
 
+  if (authLoading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#0f172a', color: 'white', fontFamily: "'Inter', sans-serif" }}>
+        Loading NovaBoard...
+      </div>
+    );
+  }
+
   return (
     <CartProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Auth />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Landing />} />
+          <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Auth />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/dashboard" element={<DashboardRedirect />} />
           <Route path="/admin" element={<Admin />} />
