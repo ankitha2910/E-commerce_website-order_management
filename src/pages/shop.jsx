@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Heart, ShoppingCart, ShoppingBag, LayoutDashboard, Download } from 'lucide-react';
-import jsPDF from 'jspdf';
+import { LogOut, Heart, ShoppingCart, ShoppingBag, LayoutDashboard, Search, X, Plus, Minus } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
 export default function Shop() {
@@ -17,7 +16,6 @@ export default function Shop() {
   const [sortBy, setSortBy] = useState('new');
   const [priceRange, setPriceRange] = useState('all');
   const [currentUser, setCurrentUser] = useState(null);
-  const [myOrders, setMyOrders] = useState([]);
   const navigate = useNavigate();
 
   const categoryData = [
@@ -34,7 +32,6 @@ export default function Shop() {
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (!session) {
-        // Aggressively clear state to prevent cross-account leakage
         setWishlist([]);
         setCurrentUser(null);
       } else if (event === 'SIGNED_IN') {
@@ -44,8 +41,6 @@ export default function Shop() {
 
     return () => authListener.subscription.unsubscribe();
   }, []);
-
-  // Local storage effect removed
 
   const fetchProducts = async () => {
     const { data: productsData, error: productsError } = await supabase.from('products').select('*').order('id', { ascending: false });
@@ -76,22 +71,16 @@ export default function Shop() {
       setCurrentUser({
         id: user.id,
         email: user.email,
-        username: profile?.username || user.user_metadata?.username || user.email.split('@')[0],
-        mobile_number: profile?.mobile_number || user.user_metadata?.mobile_number || 'N/A',
+        username: profile?.username || profile?.name || user.user_metadata?.username || user.email.split('@')[0],
         role: profile?.role || user.user_metadata?.role || 'customer',
-        address: profile?.address || ''
       });
-
       fetchWishlist(user.id);
-
-      const { data: userOrders } = await supabase.from('orders').select('*').eq('user_id', user.id).order('id', { ascending: false });
-      setMyOrders(userOrders || []);
     }
   };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    setWishlist([]); // Clear state
+    setWishlist([]);
     setCurrentUser(null);
     navigate('/');
   };
@@ -101,7 +90,8 @@ export default function Shop() {
     setTimeout(() => setToast(''), 2000);
   };
 
-  const handleAddToCart = (product) => {
+  const handleAddToCart = (product, e) => {
+    if(e) e.stopPropagation();
     addToCart(product);
     showToast(`${product.name} added to cart!`);
   };
@@ -117,7 +107,7 @@ export default function Shop() {
       setWishlist([]);
       return;
     }
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('wishlist_items')
       .select(`id, products (*)`)
       .eq('user_id', uid);
@@ -133,7 +123,8 @@ export default function Shop() {
     }
   };
 
-  const toggleWishlist = async (product) => {
+  const toggleWishlist = async (product, e) => {
+    if(e) e.stopPropagation();
     if (!currentUser) {
       alert("Please login to add to wishlist");
       return;
@@ -142,27 +133,14 @@ export default function Shop() {
     const isWishlisted = wishlist.find(item => item.id === product.id);
 
     if (isWishlisted) {
-      // Remove from DB
-      await supabase
-        .from('wishlist_items')
-        .delete()
-        .eq('user_id', currentUser.id)
-        .eq('product_id', product.id);
+      await supabase.from('wishlist_items').delete().eq('user_id', currentUser.id).eq('product_id', product.id);
       showToast('Removed from wishlist');
       setWishlist(wishlist.filter(item => item.id !== product.id));
     } else {
-      // Add to DB
-      const { data, error } = await supabase
-        .from('wishlist_items')
-        .insert([{ user_id: currentUser.id, product_id: product.id }])
-        .select()
-        .single();
-        
+      const { data, error } = await supabase.from('wishlist_items').insert([{ user_id: currentUser.id, product_id: product.id }]).select().single();
       if (!error && data) {
         showToast('Added to wishlist!');
         setWishlist([...wishlist, { ...product, wishlist_item_id: data.id }]);
-      } else {
-        showToast('Failed to update wishlist');
       }
     }
   };
@@ -170,12 +148,10 @@ export default function Shop() {
   let filteredProducts = products.filter(p => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.description?.toLowerCase().includes(search.toLowerCase());
     const matchCategory = activeCategory === 'For You' || p.category === activeCategory;
-    
     let matchPrice = true;
     if (priceRange === 'under1000') matchPrice = p.price < 1000;
     if (priceRange === '1000to5000') matchPrice = p.price >= 1000 && p.price <= 5000;
     if (priceRange === 'over5000') matchPrice = p.price > 5000;
-    
     return matchSearch && matchCategory && matchPrice;
   });
 
@@ -183,371 +159,291 @@ export default function Shop() {
   if (sortBy === 'high') filteredProducts.sort((a, b) => b.price - a.price);
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#F1F3F6', fontFamily: "'Roboto', sans-serif" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Inter:wght@400;500;600;700;800;900&display=swap');
-        .sidebar {
-          width: 260px;
-          background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-          color: white;
-          padding: 24px;
-          display: flex;
-          flex-direction: column;
-          position: fixed;
-          height: 100vh;
-          top: 0;
-          left: 0;
-          z-index: 200;
-          font-family: 'Inter', sans-serif;
-        }
-        .logo {
-          font-size: 28px;
-          font-weight: 900;
-          margin-bottom: 40px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
-        .nav-item {
-          padding: 14px 18px;
-          margin: 6px 0;
-          border-radius: 12px;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          transition: all 0.2s;
-          font-weight: 600;
-          color: #94a3b8;
-        }
-        .nav-item:hover {
-          color: white;
-          background: rgba(255,255,255,0.08);
-          transform: translateX(4px);
-        }
-        .nav-item.active {
-          color: white;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          box-shadow: 0 4px 16px rgba(102,126,234,0.4);
-        }
-        .main-content {
-          flex: 1;
-          margin-left: 260px;
-          padding-bottom: 80px;
-          background: #F1F3F6;
-          min-height: 100vh;
-          width: calc(100% - 260px);
-        }
-        .modal {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(15,23,42,0.75);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1000;
-          backdrop-filter: blur(8px);
-        }
-        .modal-content {
-          background: white;
-          border-radius: 24px;
-          padding: 36px;
-          width: 90%;
-          max-width: 440px;
-          box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        .badge {
-          padding: 6px 14px;
-          border-radius: 20px;
-          font-size: 12px;
-          font-weight: 800;
-        }
-        .badge-info {
-          background: #dbeafe;
-          color: #1e40af;
-        }
-        .btn {
-          padding: 12px 24px;
-          border-radius: 12px;
-          border: none;
-          cursor: pointer;
-          font-weight: 700;
-          display: inline-flex;
-          align-items: center;
-          gap: 10px;
-          transition: all 0.2s;
-          font-size: 14px;
-        }
-        .btn-primary {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          box-shadow: 0 4px 12px rgba(102,126,234,0.3);
-        }
-        .btn-primary:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(102,126,234,0.5);
-        }
-      `}</style>
-
+    <div className="min-h-screen flex bg-[#09090b] text-white">
       {/* SIDEBAR */}
-      <div className="sidebar">
-        <div className="logo" style={{ cursor: 'pointer', fontStyle: 'italic' }} onClick={() => navigate('/shop')}>NovaBoard</div>
-        <div className="nav-item active" onClick={() => navigate('/shop')}><ShoppingBag size={20} /> Shop</div>
-        <div className="nav-item" onClick={() => setShowWishlist(true)}><Heart size={20} /> Wishlist ({wishlist.length})</div>
-        <div className="nav-item" onClick={() => setShowCart(true)}><ShoppingCart size={20} /> Cart ({cart.reduce((a, b) => a + b.qty, 0)})</div>
-        
-        {currentUser && (
-          <div className="nav-item" onClick={() => navigate('/account/orders')}><ShoppingBag size={20} /> My Orders</div>
-        )}
-        
-        {currentUser?.role === 'admin' && (
-          <div className="nav-item" onClick={() => navigate('/admin')}><LayoutDashboard size={20} /> Admin Panel</div>
-        )}
-        
-        <div style={{ flex: 1 }}></div>
+      <div className="w-64 fixed h-full bg-[#0c0c0e] border-r border-white/5 flex flex-col p-6 z-40">
+        <div className="flex items-center gap-2 mb-10 cursor-pointer" onClick={() => navigate('/shop')}>
+          <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center font-black text-white shadow-lg shadow-indigo-500/30">N</div>
+          <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">NovaBoard</span>
+        </div>
 
-        {/* Profile Sidebar Section */}
+        <nav className="flex-1 flex flex-col gap-2">
+          <button onClick={() => navigate('/shop')} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-semibold transition-all">
+            <ShoppingBag size={20} /> Shop
+          </button>
+          <button onClick={() => setShowWishlist(true)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all font-medium">
+            <Heart size={20} /> Wishlist <span className="ml-auto bg-white/10 px-2 py-0.5 rounded-full text-xs">{wishlist.length}</span>
+          </button>
+          <button onClick={() => setShowCart(true)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all font-medium">
+            <ShoppingCart size={20} /> Cart <span className="ml-auto bg-white/10 px-2 py-0.5 rounded-full text-xs">{cart.reduce((a, b) => a + b.qty, 0)}</span>
+          </button>
+          {currentUser && (
+            <button onClick={() => navigate('/account/orders')} className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all font-medium">
+              <ShoppingBag size={20} /> My Orders
+            </button>
+          )}
+          {currentUser?.role === 'admin' && (
+            <button onClick={() => navigate('/admin')} className="flex items-center gap-3 px-4 py-3 rounded-xl text-emerald-400 hover:bg-emerald-400/10 transition-all font-medium mt-4">
+              <LayoutDashboard size={20} /> Admin Panel
+            </button>
+          )}
+        </nav>
+
         {currentUser && (
-          <div 
-            className="nav-item" 
-            onClick={() => navigate('/account')}
-            style={{ 
-              marginTop: 'auto', 
-              borderTop: '1px solid rgba(255,255,255,0.1)', 
-              paddingTop: '20px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '12px',
-              cursor: 'pointer' 
-            }}
-          >
-            <div style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontWeight: '900',
-              fontSize: '16px',
-              flexShrink: 0
-            }}>
-              {currentUser.username?.charAt(0).toUpperCase() || 'U'}
+          <div className="mt-auto border-t border-white/10 pt-4 flex items-center gap-3 cursor-pointer hover:bg-white/5 p-2 rounded-xl transition-all" onClick={() => navigate('/account')}>
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-lg shadow-lg">
+              {currentUser.username?.charAt(0).toUpperCase()}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-              <span style={{ fontSize: '14px', fontWeight: '700', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', color: 'white' }}>
-                {currentUser.username}
-              </span>
-              <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '500' }}>
-                View Profile
-              </span>
+            <div className="flex-1 overflow-hidden">
+              <div className="font-semibold text-sm truncate text-white">{currentUser.username}</div>
+              <div className="text-xs text-gray-500 truncate">View Profile</div>
             </div>
           </div>
         )}
-
-        <div className="nav-item" onClick={handleLogout}><LogOut size={20} /> Logout</div>
+        <button onClick={handleLogout} className="mt-2 flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-400/10 transition-all font-medium">
+          <LogOut size={20} /> Logout
+        </button>
       </div>
 
       {/* MAIN CONTENT */}
-      <div className="main-content">
-        {toast && <div style={{ position: 'fixed', bottom: '80px', left: '50%', transform: 'translateX(-50%)', background: '#2874f0', color: 'white', padding: '12px 24px', borderRadius: '8px', zIndex: 1000, fontWeight: 500, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>{toast}</div>}
+      <div className="flex-1 ml-64 min-h-screen relative pb-20">
+        {toast && (
+          <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white px-6 py-3 rounded-full shadow-[0_10px_40px_rgba(99,102,241,0.5)] font-semibold z-50 animate-fade-in-up flex items-center gap-2 border border-indigo-500">
+            <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+            {toast}
+          </div>
+        )}
 
-        {/* HEADER */}
-        <div style={{ background: 'white', padding: '16px 40px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid #e2e8f0', position: 'sticky', top: 0, zIndex: 100 }}>
-          <div style={{ position: 'relative', width: '100%', maxWidth: '600px' }}>
+        {/* TOP HEADER */}
+        <header className="sticky top-0 z-30 bg-[#09090b]/80 backdrop-blur-xl border-b border-white/5 px-8 py-5 flex justify-center items-center">
+          <div className="relative w-full max-w-2xl">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
             <input 
               value={search} 
               onChange={e => setSearch(e.target.value)} 
-              placeholder="Search for products, brands and more..." 
-              style={{
-                width: '100%', 
-                padding: '14px 20px 14px 48px', 
-                borderRadius: '12px', 
-                border: '2px solid #e2e8f0', 
-                outline: 'none', 
-                fontSize: '15px',
-                fontFamily: "'Inter', sans-serif",
-                background: '#f8fafc',
-                transition: 'all 0.2s'
-              }}
-              onFocus={(e) => { e.target.style.borderColor = '#667eea'; e.target.style.background = 'white'; }}
-              onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.background = '#f8fafc'; }}
+              placeholder="Search premium products..." 
+              className="w-full bg-white/5 border border-white/10 text-white pl-12 pr-4 py-3 rounded-2xl focus:outline-none focus:border-indigo-500 focus:bg-white/10 transition-all placeholder-gray-500"
             />
-            <svg style={{ position: 'absolute', left: '16px', top: '16px', color: '#94a3b8' }} width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
           </div>
-        </div>
+        </header>
 
         {/* CATEGORIES */}
-        <div className="categories-bar" style={{ background: 'white', padding: '16px 40px', display: 'flex', justifyContent: 'space-around', alignItems: 'center', boxShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>
-          {categoryData.map(cat => (
-            <div key={cat.name} onClick={() => setActiveCategory(cat.name)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer', minWidth: '90px', padding: '8px', borderBottom: activeCategory === cat.name ? '3px solid #2874f0' : '3px solid transparent' }}>
-              <img src={cat.icon} style={{ width: '64px', height: '64px', objectFit: 'contain', marginBottom: '6px' }} alt="" />
-              <span style={{ fontSize: '14px', fontWeight: '600', color: activeCategory === cat.name ? '#2874f0' : '#212121' }}>{cat.name}</span>
-            </div>
-          ))}
+        <div className="px-8 py-6 border-b border-white/5 bg-[#0c0c0e]">
+          <div className="flex justify-center gap-8 md:gap-16 overflow-x-auto no-scrollbar">
+            {categoryData.map(cat => (
+              <div key={cat.name} onClick={() => setActiveCategory(cat.name)} className={`flex flex-col items-center cursor-pointer transition-all group ${activeCategory === cat.name ? 'opacity-100' : 'opacity-50 hover:opacity-100'}`}>
+                <div className={`w-16 h-16 rounded-2xl mb-3 flex items-center justify-center transition-all ${activeCategory === cat.name ? 'bg-indigo-500/20 border border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.2)]' : 'bg-white/5 border border-white/5 group-hover:bg-white/10'}`}>
+                  <img src={cat.icon} className="w-8 h-8 object-contain" alt={cat.name} />
+                </div>
+                <span className={`text-sm font-semibold transition-colors ${activeCategory === cat.name ? 'text-indigo-400' : 'text-gray-400 group-hover:text-gray-200'}`}>{cat.name}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* BANNER SLIDER */}
-        <div style={{ background: 'white', margin: '16px 20px', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-          <img 
-            src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1600" 
-            style={{
-              width: '100%', 
-              height: '250px',  
-              objectFit: 'cover'
-            }} 
-            alt="Promotion Banner"
-          />
-        </div>
-
-        {/* SORT + PRODUCTS AND FILTERS */}
-        <div style={{ padding: '10px 20px', maxWidth: '1400px', margin: '0 auto' }}>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', background: 'white', padding: '16px 24px', borderRadius: '4px', borderBottom: '1px solid #f0f0f0', boxShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>
-               <h2 style={{ fontSize: '18px', fontWeight: 500, color: '#212121' }}>{activeCategory === 'For You' ? 'All Products' : activeCategory} <span style={{fontSize: '12px', color: '#878787', fontWeight: 'normal'}}>({filteredProducts.length} items)</span></h2>
-               <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                   <span style={{ fontSize: '14px', fontWeight: 500 }}>Price</span>
-                   <select value={priceRange} onChange={e => setPriceRange(e.target.value)} style={{ border: 'none', outline: 'none', borderBottom: '2px solid #2874f0', fontSize: '14px', paddingBottom: '4px', cursor: 'pointer', fontWeight: '500' }}>
-                     <option value="all">Any Price</option>
-                     <option value="under1000">Under ₹1,000</option>
-                     <option value="1000to5000">₹1,000 - ₹5,000</option>
-                     <option value="over5000">Over ₹5,000</option>
-                   </select>
-                 </div>
-                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                   <span style={{ fontSize: '14px', fontWeight: 500 }}>Sort By</span>
-                   <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ border: 'none', outline: 'none', borderBottom: '2px solid #2874f0', fontSize: '14px', paddingBottom: '4px', cursor: 'pointer', fontWeight: '500' }}>
-                     <option value="new">Relevance</option>
-                     <option value="low">Price -- Low to High</option>
-                     <option value="high">Price -- High to Low</option>
-                   </select>
-                 </div>
+        {/* PRODUCTS SECTION */}
+        <div className="p-8 max-w-7xl mx-auto">
+          {/* Filters Bar */}
+          <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
+             <h2 className="text-xl font-bold flex items-center gap-2">
+               {activeCategory === 'For You' ? 'Featured Collection' : activeCategory} 
+               <span className="text-sm font-medium px-2 py-1 bg-white/10 rounded-full text-gray-400">{filteredProducts.length}</span>
+             </h2>
+             <div className="flex items-center gap-6">
+               <div className="flex items-center gap-2">
+                 <span className="text-sm text-gray-400 font-medium">Price</span>
+                 <select value={priceRange} onChange={e => setPriceRange(e.target.value)} className="bg-transparent text-sm font-semibold text-white border-none outline-none cursor-pointer focus:ring-0 [&>option]:bg-[#0f172a]">
+                   <option value="all">All Prices</option>
+                   <option value="under1000">Under ₹1,000</option>
+                   <option value="1000to5000">₹1,000 - ₹5,000</option>
+                   <option value="over5000">Over ₹5,000</option>
+                 </select>
                </div>
-            </div>
+               <div className="w-px h-6 bg-white/10"></div>
+               <div className="flex items-center gap-2">
+                 <span className="text-sm text-gray-400 font-medium">Sort</span>
+                 <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="bg-transparent text-sm font-semibold text-white border-none outline-none cursor-pointer focus:ring-0 [&>option]:bg-[#0f172a]">
+                   <option value="new">Relevance</option>
+                   <option value="low">Lowest Price</option>
+                   <option value="high">Highest Price</option>
+                 </select>
+               </div>
+             </div>
+          </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: '12px' }}>
-              {filteredProducts.map(product => {
-                const discount = product.mrp > 0 ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
-                
-                const productReviews = product.reviews || [];
-                const avgRating = productReviews.length > 0 
-                  ? (productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length).toFixed(1)
-                  : 4.0;
-                const reviewCount = productReviews.length;
+          {/* Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredProducts.map(product => {
+              const isWishlisted = wishlist.some(item => item.id === product.id);
+              const discount = product.mrp > 0 ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
+              const productReviews = product.reviews || [];
+              const avgRating = productReviews.length > 0 ? (productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length).toFixed(1) : 4.0;
 
-                return (
-                  <div key={product.id} onClick={() => navigate(`/product/${product.id}`)} style={{ background: 'white', borderRadius: '4px', overflow: 'hidden', boxShadow: '0 1px 2px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', cursor: 'pointer', position: 'relative' }}>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); toggleWishlist(product); }} 
-                      style={{ position: 'absolute', top: '12px', right: '12px', background: 'white', border: '1px solid #f0f0f0', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10, color: wishlist.find(item => item.id === product.id) ? '#ff4d4f' : '#c2c2c2', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}
-                      title={wishlist.find(item => item.id === product.id) ? "Remove from Wishlist" : "Add to Wishlist"}
-                    >
-                      <Heart size={16} fill={wishlist.find(item => item.id === product.id) ? '#ff4d4f' : 'none'} />
+              return (
+                <div key={product.id} onClick={() => navigate(`/product/${product.id}`)} className="group bg-[#0c0c0e] border border-white/10 rounded-2xl overflow-hidden cursor-pointer hover:border-indigo-500/50 hover:shadow-[0_0_30px_rgba(99,102,241,0.15)] transition-all duration-300 flex flex-col relative">
+                  
+                  {/* Floating Actions */}
+                  <div className="absolute top-3 right-3 flex flex-col gap-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={(e) => toggleWishlist(product, e)} className={`w-9 h-9 rounded-full flex items-center justify-center backdrop-blur-md shadow-lg transition-all ${isWishlisted ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30' : 'bg-black/40 text-white hover:bg-black/60'}`}>
+                      <Heart size={18} fill={isWishlisted ? "currentColor" : "none"} />
                     </button>
-                    <div style={{ height: '200px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-                      <img src={product.image_url} alt={product.name} style={{ maxWidth: '100%', maxHeight: '180px', objectFit: 'contain' }} />
-                    </div>
-                    <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-                      <h3 style={{ fontSize: '14px', fontWeight: '500', marginBottom: '8px', color: '#212121', height: '40px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{product.name}</h3>
-                      
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', marginBottom: '8px' }}>
-                        <span style={{ background: avgRating >= 3 ? '#388E3C' : (avgRating >= 2 ? '#ff9f00' : '#ff6161'), color: 'white', padding: '2px 4px', borderRadius: '3px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '2px' }}>{avgRating} ★</span>
-                        <span style={{ color: '#878787', fontWeight: 500 }}>({reviewCount})</span>
-                      </div>
+                  </div>
 
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '8px' }}>
-                        <p style={{ fontSize: '18px', fontWeight: '500', color: '#212121' }}>₹{product.price.toLocaleString('en-IN')}</p>
+                  {/* Image Container */}
+                  <div className="h-56 bg-white/5 flex items-center justify-center p-6 relative overflow-hidden group-hover:bg-white/10 transition-colors">
+                    <img src={product.image_url} alt={product.name} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500" />
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-5 flex flex-col flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded text-xs font-bold text-yellow-400">
+                        ★ {avgRating}
+                      </div>
+                      <span className="text-xs text-gray-500">({productReviews.length})</span>
+                    </div>
+                    
+                    <h3 className="font-medium text-gray-200 text-sm mb-4 line-clamp-2 leading-relaxed flex-1 group-hover:text-indigo-300 transition-colors">{product.name}</h3>
+                    
+                    <div className="flex items-end justify-between mt-auto">
+                      <div>
+                        <div className="text-lg font-black text-white">₹{product.price.toLocaleString('en-IN')}</div>
                         {product.mrp > product.price && (
-                          <>
-                            <p style={{ fontSize: '12px', color: '#878787', textDecoration: 'line-through' }}>₹{product.mrp.toLocaleString('en-IN')}</p>
-                            <p style={{ fontSize: '12px', color: '#388E3C', fontWeight: '500' }}>{discount}% off</p>
-                          </>
+                          <div className="flex items-center gap-2 text-xs mt-1">
+                            <span className="text-gray-500 line-through">₹{product.mrp.toLocaleString('en-IN')}</span>
+                            <span className="text-emerald-400 font-bold">{discount}% OFF</span>
+                          </div>
                         )}
                       </div>
+                      <button onClick={(e) => handleAddToCart(product, e)} className="w-10 h-10 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-lg transition-colors">
+                        <ShoppingCart size={18} />
+                      </button>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-      {/* CART POPUP */}
-      {showCart && (
-        <div onClick={() => setShowCart(false)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', justifyContent: 'flex-end', zIndex: 999, backdropFilter: 'blur(4px)' }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '420px', background: 'white', padding: '30px', display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0f172a', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>🛒 Your Cart</h2>
-                {/* CART ITEMS */}
-                <div style={{ flex: 1, overflowY: 'auto', paddingRight: '12px' }}>
-                  {cart.length === 0 ? (
-                    <div style={{ textAlign: 'center', color: '#94a3b8', marginTop: '60px' }}>
-                      <ShoppingCart size={48} style={{ margin: '0 auto 16px', opacity: 0.5 }} />
-                      <p>Your cart is empty.</p>
-                    </div>
-                  ) : (
-                    cart.map((item, idx) => (
-                      <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px', background: '#f8fafc', borderRadius: '12px', marginBottom: '16px' }}>
-                        <img src={item.image_url} alt={item.name} style={{ width: '60px', height: '60px', objectFit: 'contain', background: 'white', borderRadius: '8px', padding: '4px' }} />
-                        <div style={{ flex: 1 }}>
-                          <h4 style={{ fontWeight: 700, fontSize: '14px', marginBottom: '4px', color: '#1e293b' }}>{item.name}</h4>
-                          <p style={{ fontWeight: 800, color: '#667eea', fontSize: '16px' }}>₹{item.price}</p>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'white', padding: '4px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                          <button onClick={() => updateQty(item.id, -1)} style={{ width: '28px', height: '28px', border: 'none', background: '#f1f5f9', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', color: '#475569' }}>-</button>
-                          <span style={{ fontWeight: '700', fontSize: '14px', width: '20px', textAlign: 'center' }}>{item.qty}</span>
-                          <button onClick={() => updateQty(item.id, 1)} style={{ width: '28px', height: '28px', border: 'none', background: '#667eea', color: 'white', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}>+</button>
-                        </div>
-                        <button onClick={() => removeFromCart(item.id)} style={{ border: 'none', background: 'transparent', color: '#ef4444', cursor: 'pointer', padding: '4px' }}>✕</button>
-                      </div>
-                    ))
-                  )}
                 </div>
-                {/* CART FOOTER */}
-                {cart.length > 0 && (
-                  <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '2px dashed #e2e8f0' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', fontSize: '18px' }}>
-                      <span style={{ fontWeight: 700, color: '#64748b' }}>Total Amount:</span>
-                      <span style={{ fontWeight: 900, color: '#0f172a' }}>₹{cartTotal}</span>
-                    </div>
-                    <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '16px', fontSize: '16px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }} onClick={buyNow}>
-                      Proceed to Checkout
-                    </button>
-                  </div>
-                )}
-            <button onClick={() => setShowCart(false)} style={{ width: '100%', padding: '12px', background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '12px', marginTop: '10px', fontWeight: '600', cursor: 'pointer' }}>Close Cart</button>
+              );
+            })}
           </div>
         </div>
-      )}
+      </div>
 
-      {/* WISHLIST POPUP */}
-      {showWishlist && (
-        <div onClick={() => setShowWishlist(false)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', justifyContent: 'flex-end', zIndex: 999, backdropFilter: 'blur(4px)' }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '420px', background: 'white', padding: '30px', display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0f172a', marginBottom: '24px' }}>❤️ Your Wishlist</h2>
-            <div style={{ flex: 1, overflowY: 'auto' }}>
-              {wishlist.length === 0 ? <p style={{ textAlign: 'center', color: '#64748b', marginTop: '40px', fontWeight: 500 }}>Your wishlist is empty</p> : 
-                wishlist.map(item => (
-                  <div key={item.id} style={{ display: 'flex', gap: '14px', marginBottom: '20px', borderBottom: '1px solid #f1f5f9', paddingBottom: '16px' }}>
-                    <img src={item.image_url} style={{ width: '70px', height: '70px', objectFit: 'contain', borderRadius: '10px', border: '1px solid #e2e8f0', padding: '4px' }} alt="" />
-                    <div style={{ flex: 1 }}>
-                      <p style={{ fontWeight: '700', color: '#1e293b', fontSize: '15px' }}>{item.name}</p>
-                      <p style={{ fontWeight: '800', color: '#667eea', marginTop: '4px' }}>₹{item.price}</p>
-                      <button onClick={() => { handleAddToCart(item); toggleWishlist(item); }} style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', padding: '8px 14px', borderRadius: '8px', marginTop: '10px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}>Move to Cart</button>
+      {/* CART SLIDEOUT OVERLAY */}
+      {showCart && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex justify-end">
+          <div className="w-full max-w-md bg-[#0c0c0e] border-l border-white/10 h-full flex flex-col shadow-2xl animate-fade-in-right">
+            <div className="p-6 border-b border-white/10 flex justify-between items-center">
+              <h2 className="text-2xl font-bold flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400"><ShoppingCart size={20}/></div>
+                Your Cart
+              </h2>
+              <button onClick={() => setShowCart(false)} className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"><X size={18}/></button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {cart.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-gray-500">
+                  <ShoppingCart size={48} className="mb-4 opacity-20" />
+                  <p>Your cart is empty.</p>
+                </div>
+              ) : (
+                cart.map((item, idx) => (
+                  <div key={idx} className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
+                    <img src={item.image_url} alt={item.name} className="w-20 h-20 object-contain bg-white/10 rounded-xl p-2" />
+                    <div className="flex-1 flex flex-col justify-between">
+                      <div className="flex justify-between items-start gap-2">
+                        <h4 className="font-semibold text-sm line-clamp-2 text-gray-200">{item.name}</h4>
+                        <button onClick={() => removeFromCart(item.id)} className="text-gray-500 hover:text-red-400 transition-colors"><X size={16}/></button>
+                      </div>
+                      <div className="flex justify-between items-center mt-2">
+                        <p className="font-bold text-indigo-400">₹{item.price}</p>
+                        <div className="flex items-center gap-3 bg-black/40 rounded-lg p-1 border border-white/5">
+                          <button onClick={() => updateQty(item.id, -1)} className="w-6 h-6 rounded flex items-center justify-center bg-white/10 hover:bg-white/20"><Minus size={14}/></button>
+                          <span className="text-sm font-bold w-4 text-center">{item.qty}</span>
+                          <button onClick={() => updateQty(item.id, 1)} className="w-6 h-6 rounded flex items-center justify-center bg-white/10 hover:bg-white/20"><Plus size={14}/></button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))
-              }
+              )}
             </div>
-            <button onClick={() => setShowWishlist(false)} style={{ width: '100%', padding: '12px', background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '12px', marginTop: '10px', fontWeight: '600', cursor: 'pointer' }}>Close Wishlist</button>
+
+            {cart.length > 0 && (
+              <div className="p-6 border-t border-white/10 bg-white/5">
+                <div className="flex justify-between text-lg mb-6">
+                  <span className="text-gray-400">Total</span>
+                  <span className="font-black text-xl text-white">₹{cartTotal}</span>
+                </div>
+                <button onClick={buyNow} className="w-full py-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 font-bold text-lg hover:shadow-[0_0_30px_rgba(99,102,241,0.4)] transition-all">
+                  Proceed to Checkout
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
+
+      {/* WISHLIST SLIDEOUT OVERLAY */}
+      {showWishlist && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex justify-end">
+          <div className="w-full max-w-md bg-[#0c0c0e] border-l border-white/10 h-full flex flex-col shadow-2xl animate-fade-in-right">
+            <div className="p-6 border-b border-white/10 flex justify-between items-center">
+              <h2 className="text-2xl font-bold flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center text-red-400"><Heart size={20}/></div>
+                Wishlist
+              </h2>
+              <button onClick={() => setShowWishlist(false)} className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"><X size={18}/></button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {wishlist.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-gray-500">
+                  <Heart size={48} className="mb-4 opacity-20" />
+                  <p>Your wishlist is empty.</p>
+                </div>
+              ) : (
+                wishlist.map((item, idx) => (
+                  <div key={idx} className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
+                    <img src={item.image_url} alt={item.name} className="w-20 h-20 object-contain bg-white/10 rounded-xl p-2" />
+                    <div className="flex-1 flex flex-col justify-between">
+                      <div className="flex justify-between items-start gap-2">
+                        <h4 className="font-semibold text-sm line-clamp-2 text-gray-200">{item.name}</h4>
+                        <button onClick={(e) => toggleWishlist(item, e)} className="text-gray-500 hover:text-red-400 transition-colors"><X size={16}/></button>
+                      </div>
+                      <div className="flex justify-between items-center mt-2">
+                        <p className="font-bold text-indigo-400">₹{item.price}</p>
+                        <button onClick={(e) => { handleAddToCart(item, e); toggleWishlist(item, e); }} className="px-4 py-1.5 bg-indigo-500/20 text-indigo-400 rounded-lg text-sm font-bold hover:bg-indigo-500/40 transition-colors">
+                          Move to Cart
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Animation CSS */}
+      <style>{`
+        @keyframes fadeInRight {
+          from { opacity: 0; transform: translateX(50px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-fade-in-right {
+          animation: fadeInRight 0.3s ease-out forwards;
+        }
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+      `}</style>
     </div>
   );
 }
