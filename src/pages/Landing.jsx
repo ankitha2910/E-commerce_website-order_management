@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, ArrowRight, Star } from 'lucide-react';
 
 export default function Landing() {
   const [products, setProducts] = useState([]);
@@ -33,75 +33,96 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-white font-sans selection:bg-indigo-500/30 overflow-hidden relative">
+    <div className="min-h-screen relative">
+      {/* Dynamic Background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-[-1]">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/20 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 rounded-full blur-[120px]" />
+      </div>
+
       {/* Navigation */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-[#09090b]/80 backdrop-blur-md border-b border-white/10 py-4' : 'bg-transparent py-6'}`}>
-        <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
+      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'premium-glass-nav py-4' : 'bg-transparent py-6'}`}>
+        <div className="premium-container flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-[0_0_20px_rgba(99,102,241,0.4)]">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black text-xl" style={{ background: 'var(--gradient-brand)', boxShadow: 'var(--shadow-glow)' }}>
               N
             </div>
-            <span className="text-2xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+            <span className="text-2xl font-extrabold tracking-tight premium-text-gradient">
               NovaBoard
             </span>
           </div>
           <div className="flex items-center gap-4">
-            <Link to="/login" className="px-6 py-2.5 text-sm font-bold text-white bg-white/10 hover:bg-white/20 border border-white/10 rounded-full backdrop-blur-sm transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]">
-              Login
+            <Link to="/login" className="premium-btn premium-btn-secondary">
+              Sign In <ArrowRight size={16} />
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* Hero / Header for Products */}
-      <div className="relative pt-32 pb-12 px-6 md:px-12 max-w-7xl mx-auto text-center">
-        <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 animate-fade-in-up">
-          Discover Premium <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Products</span>
+      {/* Hero Section */}
+      <div className="relative pt-40 pb-20 premium-container text-center">
+        <div className="inline-block mb-4 animate-fade-in-up">
+          <span className="premium-badge">✨ Redesigned Experience</span>
+        </div>
+        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 animate-fade-in-up delay-100">
+          Discover <span className="premium-text-gradient">Premium</span> Products
         </h1>
-        <p className="text-lg text-gray-400 max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-          Explore our exclusive collection. Log in to start shopping, track orders, and manage your wishlist.
+        <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto animate-fade-in-up delay-200" style={{ color: 'var(--text-muted)' }}>
+          Explore our exclusive, handpicked collection. Elevate your lifestyle with NovaBoard's next-generation shopping experience.
         </p>
+        <div className="mt-10 flex justify-center gap-4 animate-fade-in-up delay-300">
+          <button onClick={() => window.scrollTo({ top: 800, behavior: 'smooth' })} className="premium-btn premium-btn-primary">
+            Start Shopping
+          </button>
+        </div>
       </div>
 
       {/* Products Grid */}
-      <div className="px-6 md:px-12 pb-24 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+      <div className="premium-container pb-24">
+        <div className="flex items-center justify-between mb-8 animate-fade-in-up delay-200">
+          <h2 className="text-3xl font-bold">Trending Now</h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in-up delay-300">
           {products.map(product => {
             const discount = product.mrp > 0 ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
             const productReviews = product.reviews || [];
             const avgRating = productReviews.length > 0 ? (productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length).toFixed(1) : 4.0;
 
             return (
-              <div key={product.id} onClick={() => navigate('/login')} className="group bg-[#0c0c0e] border border-white/10 rounded-2xl overflow-hidden cursor-pointer hover:border-indigo-500/50 hover:shadow-[0_0_30px_rgba(99,102,241,0.15)] transition-all duration-300 flex flex-col relative">
+              <div key={product.id} onClick={() => navigate('/login')} className="premium-card cursor-pointer flex flex-col h-full group">
                 
                 {/* Image Container */}
-                <div className="h-56 bg-white/5 flex items-center justify-center p-6 relative overflow-hidden group-hover:bg-white/10 transition-colors">
+                <div className="h-64 flex items-center justify-center p-6 relative overflow-hidden" style={{ background: 'var(--glass-bg)' }}>
                   <img src={product.image_url} alt={product.name} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500" />
+                  {discount > 0 && (
+                    <div className="absolute top-3 right-3 premium-badge bg-indigo-500/20 text-indigo-300 border-indigo-500/30 backdrop-blur-md">
+                      {discount}% OFF
+                    </div>
+                  )}
                 </div>
 
                 {/* Content */}
-                <div className="p-5 flex flex-col flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded text-xs font-bold text-yellow-400">
-                      ★ {avgRating}
+                <div className="p-6 flex flex-col flex-1">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-center gap-1 px-2 py-1 rounded text-xs font-bold text-yellow-400" style={{ background: 'rgba(250, 204, 21, 0.1)' }}>
+                      <Star size={12} fill="currentColor" /> {avgRating}
                     </div>
-                    <span className="text-xs text-gray-500">({productReviews.length})</span>
+                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>({productReviews.length} reviews)</span>
                   </div>
                   
-                  <h3 className="font-medium text-gray-200 text-sm mb-4 line-clamp-2 leading-relaxed flex-1 group-hover:text-indigo-300 transition-colors">{product.name}</h3>
+                  <h3 className="font-semibold text-lg mb-4 line-clamp-2 leading-snug flex-1 group-hover:text-indigo-400 transition-colors">{product.name}</h3>
                   
-                  <div className="flex items-end justify-between mt-auto">
+                  <div className="flex items-end justify-between mt-auto pt-4 border-t" style={{ borderColor: 'var(--glass-border)' }}>
                     <div>
-                      <div className="text-lg font-black text-white">₹{product.price.toLocaleString('en-IN')}</div>
+                      <div className="text-2xl font-black">₹{product.price.toLocaleString('en-IN')}</div>
                       {product.mrp > product.price && (
-                        <div className="flex items-center gap-2 text-xs mt-1">
-                          <span className="text-gray-500 line-through">₹{product.mrp.toLocaleString('en-IN')}</span>
-                          <span className="text-emerald-400 font-bold">{discount}% OFF</span>
+                        <div className="flex items-center gap-2 text-sm mt-1">
+                          <span className="line-through" style={{ color: 'var(--text-muted)' }}>₹{product.mrp.toLocaleString('en-IN')}</span>
                         </div>
                       )}
                     </div>
-                    <button className="w-10 h-10 rounded-full bg-indigo-600/50 text-white flex items-center justify-center shadow-lg transition-colors group-hover:bg-indigo-600">
-                      <ShoppingCart size={18} />
+                    <button className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all group-hover:scale-110" style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)' }}>
+                      <ShoppingCart size={20} className="text-indigo-400 group-hover:text-white" />
                     </button>
                   </div>
                 </div>
@@ -112,33 +133,17 @@ export default function Landing() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-white/10 bg-[#09090b] py-8 relative z-10">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row justify-between items-center gap-4 text-sm font-medium text-gray-500">
+      <footer className="border-t py-8 relative z-10" style={{ borderColor: 'var(--glass-border)', background: 'var(--bg-main)' }}>
+        <div className="premium-container flex flex-col md:flex-row justify-between items-center gap-4 text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-md flex items-center justify-center text-white font-bold text-xs">N</div>
+            <div className="w-6 h-6 rounded-md flex items-center justify-center text-white font-bold text-xs" style={{ background: 'var(--gradient-brand)' }}>N</div>
             <span>&copy; {new Date().getFullYear()} NovaBoard Technologies</span>
+          </div>
+          <div>
+            Crafted with ❤️ for a Premium Experience
           </div>
         </div>
       </footer>
-      
-      {/* Custom Animations CSS */}
-      <style>{`
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fade-in-up {
-          animation: fadeInUp 0.8s ease-out forwards;
-          opacity: 0;
-        }
-      `}</style>
     </div>
   );
 }
-

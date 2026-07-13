@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Heart, ShoppingCart, ShoppingBag, LayoutDashboard, Search, X, Plus, Minus } from 'lucide-react';
+import { LogOut, Heart, ShoppingCart, ShoppingBag, LayoutDashboard, Search, X, Plus, Minus, Star } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
 export default function Shop() {
@@ -159,44 +159,44 @@ export default function Shop() {
   if (sortBy === 'high') filteredProducts.sort((a, b) => b.price - a.price);
 
   return (
-    <div className="min-h-screen flex bg-[#09090b] text-white">
+    <div className="min-h-screen flex" style={{ background: 'var(--bg-main)', color: 'var(--text-main)' }}>
       {/* SIDEBAR */}
-      <div className="w-64 fixed h-full bg-[#0c0c0e] border-r border-white/5 flex flex-col p-6 z-40">
+      <div className="w-64 fixed h-full flex flex-col p-6 z-40 border-r" style={{ background: 'var(--bg-surface)', borderColor: 'var(--glass-border)' }}>
         <div className="flex items-center gap-2 mb-10 cursor-pointer" onClick={() => navigate('/shop')}>
-          <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center font-black text-white shadow-lg shadow-indigo-500/30">N</div>
-          <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">NovaBoard</span>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-white" style={{ background: 'var(--gradient-brand)', boxShadow: 'var(--shadow-glow)' }}>N</div>
+          <span className="text-xl font-bold premium-text-gradient">NovaBoard</span>
         </div>
 
         <nav className="flex-1 flex flex-col gap-2">
-          <button onClick={() => navigate('/shop')} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-semibold transition-all">
+          <button onClick={() => navigate('/shop')} className="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all" style={{ background: 'var(--glass-bg)', border: '1px solid var(--primary-accent)', color: 'var(--primary-accent)' }}>
             <ShoppingBag size={20} /> Shop
           </button>
-          <button onClick={() => setShowWishlist(true)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all font-medium">
-            <Heart size={20} /> Wishlist <span className="ml-auto bg-white/10 px-2 py-0.5 rounded-full text-xs">{wishlist.length}</span>
+          <button onClick={() => setShowWishlist(true)} className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium hover:bg-white/5" style={{ color: 'var(--text-muted)' }}>
+            <Heart size={20} /> Wishlist <span className="ml-auto px-2 py-0.5 rounded-full text-xs text-white" style={{ background: 'var(--glass-bg)' }}>{wishlist.length}</span>
           </button>
-          <button onClick={() => setShowCart(true)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all font-medium">
-            <ShoppingCart size={20} /> Cart <span className="ml-auto bg-white/10 px-2 py-0.5 rounded-full text-xs">{cart.reduce((a, b) => a + b.qty, 0)}</span>
+          <button onClick={() => setShowCart(true)} className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium hover:bg-white/5" style={{ color: 'var(--text-muted)' }}>
+            <ShoppingCart size={20} /> Cart <span className="ml-auto px-2 py-0.5 rounded-full text-xs text-white" style={{ background: 'var(--glass-bg)' }}>{cart.reduce((a, b) => a + b.qty, 0)}</span>
           </button>
           {currentUser && (
-            <button onClick={() => navigate('/account/orders')} className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all font-medium">
+            <button onClick={() => navigate('/account/orders')} className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium hover:bg-white/5" style={{ color: 'var(--text-muted)' }}>
               <ShoppingBag size={20} /> My Orders
             </button>
           )}
           {currentUser?.role === 'admin' && (
-            <button onClick={() => navigate('/admin')} className="flex items-center gap-3 px-4 py-3 rounded-xl text-emerald-400 hover:bg-emerald-400/10 transition-all font-medium mt-4">
+            <button onClick={() => navigate('/admin')} className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium mt-4 text-emerald-400 hover:bg-emerald-400/10">
               <LayoutDashboard size={20} /> Admin Panel
             </button>
           )}
         </nav>
 
         {currentUser && (
-          <div className="mt-auto border-t border-white/10 pt-4 flex items-center gap-3 cursor-pointer hover:bg-white/5 p-2 rounded-xl transition-all" onClick={() => navigate('/account')}>
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-lg shadow-lg">
+          <div className="mt-auto pt-4 flex items-center gap-3 cursor-pointer p-2 rounded-xl transition-all hover:bg-white/5 border-t" style={{ borderColor: 'var(--glass-border)' }} onClick={() => navigate('/account')}>
+            <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg text-white" style={{ background: 'var(--gradient-brand)', boxShadow: 'var(--shadow-glow)' }}>
               {currentUser.username?.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 overflow-hidden">
               <div className="font-semibold text-sm truncate text-white">{currentUser.username}</div>
-              <div className="text-xs text-gray-500 truncate">View Profile</div>
+              <div className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>View Profile</div>
             </div>
           </div>
         )}
@@ -208,34 +208,34 @@ export default function Shop() {
       {/* MAIN CONTENT */}
       <div className="flex-1 ml-64 min-h-screen relative pb-20">
         {toast && (
-          <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white px-6 py-3 rounded-full shadow-[0_10px_40px_rgba(99,102,241,0.5)] font-semibold z-50 animate-fade-in-up flex items-center gap-2 border border-indigo-500">
+          <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full font-semibold z-50 animate-fade-in-up flex items-center gap-2 text-white" style={{ background: 'var(--gradient-brand)', boxShadow: 'var(--shadow-glow-strong)' }}>
             <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
             {toast}
           </div>
         )}
 
         {/* TOP HEADER */}
-        <header className="sticky top-0 z-30 bg-[#09090b]/80 backdrop-blur-xl border-b border-white/5 px-8 py-5 flex justify-center items-center">
+        <header className="sticky top-0 z-30 premium-glass-nav px-8 py-5 flex justify-center items-center">
           <div className="relative w-full max-w-2xl">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
             <input 
               value={search} 
               onChange={e => setSearch(e.target.value)} 
               placeholder="Search premium products..." 
-              className="w-full bg-white/5 border border-white/10 text-white pl-12 pr-4 py-3 rounded-2xl focus:outline-none focus:border-indigo-500 focus:bg-white/10 transition-all placeholder-gray-500"
+              className="premium-input pl-12"
             />
           </div>
         </header>
 
         {/* CATEGORIES */}
-        <div className="px-8 py-6 border-b border-white/5 bg-[#0c0c0e]">
+        <div className="px-8 py-6 border-b" style={{ borderColor: 'var(--glass-border)', background: 'var(--bg-surface)' }}>
           <div className="flex justify-center gap-8 md:gap-16 overflow-x-auto no-scrollbar">
             {categoryData.map(cat => (
-              <div key={cat.name} onClick={() => setActiveCategory(cat.name)} className={`flex flex-col items-center cursor-pointer transition-all group ${activeCategory === cat.name ? 'opacity-100' : 'opacity-50 hover:opacity-100'}`}>
+              <div key={cat.name} onClick={() => setActiveCategory(cat.name)} className={`flex flex-col items-center cursor-pointer transition-all group ${activeCategory === cat.name ? 'opacity-100' : 'opacity-60 hover:opacity-100'}`}>
                 <div className={`w-16 h-16 rounded-2xl mb-3 flex items-center justify-center transition-all ${activeCategory === cat.name ? 'bg-indigo-500/20 border border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.2)]' : 'bg-white/5 border border-white/5 group-hover:bg-white/10'}`}>
                   <img src={cat.icon} className="w-8 h-8 object-contain" alt={cat.name} />
                 </div>
-                <span className={`text-sm font-semibold transition-colors ${activeCategory === cat.name ? 'text-indigo-400' : 'text-gray-400 group-hover:text-gray-200'}`}>{cat.name}</span>
+                <span className="text-sm font-semibold transition-colors" style={{ color: activeCategory === cat.name ? 'var(--primary-accent)' : 'var(--text-muted)' }}>{cat.name}</span>
               </div>
             ))}
           </div>
@@ -244,25 +244,25 @@ export default function Shop() {
         {/* PRODUCTS SECTION */}
         <div className="p-8 max-w-7xl mx-auto">
           {/* Filters Bar */}
-          <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
+          <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 p-4 rounded-2xl border" style={{ background: 'var(--glass-bg)', borderColor: 'var(--glass-border)' }}>
              <h2 className="text-xl font-bold flex items-center gap-2">
                {activeCategory === 'For You' ? 'Featured Collection' : activeCategory} 
-               <span className="text-sm font-medium px-2 py-1 bg-white/10 rounded-full text-gray-400">{filteredProducts.length}</span>
+               <span className="text-sm font-medium px-2 py-1 rounded-full" style={{ background: 'var(--glass-bg)', color: 'var(--text-muted)' }}>{filteredProducts.length}</span>
              </h2>
              <div className="flex items-center gap-6">
                <div className="flex items-center gap-2">
-                 <span className="text-sm text-gray-400 font-medium">Price</span>
-                 <select value={priceRange} onChange={e => setPriceRange(e.target.value)} className="bg-transparent text-sm font-semibold text-white border-none outline-none cursor-pointer focus:ring-0 [&>option]:bg-[#0f172a]">
+                 <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Price</span>
+                 <select value={priceRange} onChange={e => setPriceRange(e.target.value)} className="bg-transparent text-sm font-semibold text-white border-none outline-none cursor-pointer focus:ring-0 [&>option]:bg-[#121217]">
                    <option value="all">All Prices</option>
                    <option value="under1000">Under ₹1,000</option>
                    <option value="1000to5000">₹1,000 - ₹5,000</option>
                    <option value="over5000">Over ₹5,000</option>
                  </select>
                </div>
-               <div className="w-px h-6 bg-white/10"></div>
+               <div className="w-px h-6" style={{ background: 'var(--glass-border)' }}></div>
                <div className="flex items-center gap-2">
-                 <span className="text-sm text-gray-400 font-medium">Sort</span>
-                 <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="bg-transparent text-sm font-semibold text-white border-none outline-none cursor-pointer focus:ring-0 [&>option]:bg-[#0f172a]">
+                 <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Sort</span>
+                 <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="bg-transparent text-sm font-semibold text-white border-none outline-none cursor-pointer focus:ring-0 [&>option]:bg-[#121217]">
                    <option value="new">Relevance</option>
                    <option value="low">Lowest Price</option>
                    <option value="high">Highest Price</option>
@@ -272,7 +272,7 @@ export default function Shop() {
           </div>
 
           {/* Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in-up">
             {filteredProducts.map(product => {
               const isWishlisted = wishlist.some(item => item.id === product.id);
               const discount = product.mrp > 0 ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
@@ -280,7 +280,7 @@ export default function Shop() {
               const avgRating = productReviews.length > 0 ? (productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length).toFixed(1) : 4.0;
 
               return (
-                <div key={product.id} onClick={() => navigate(`/product/${product.id}`)} className="group bg-[#0c0c0e] border border-white/10 rounded-2xl overflow-hidden cursor-pointer hover:border-indigo-500/50 hover:shadow-[0_0_30px_rgba(99,102,241,0.15)] transition-all duration-300 flex flex-col relative">
+                <div key={product.id} onClick={() => navigate(`/product/${product.id}`)} className="premium-card cursor-pointer flex flex-col relative h-full group">
                   
                   {/* Floating Actions */}
                   <div className="absolute top-3 right-3 flex flex-col gap-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -290,33 +290,37 @@ export default function Shop() {
                   </div>
 
                   {/* Image Container */}
-                  <div className="h-56 bg-white/5 flex items-center justify-center p-6 relative overflow-hidden group-hover:bg-white/10 transition-colors">
+                  <div className="h-56 flex items-center justify-center p-6 relative overflow-hidden transition-colors" style={{ background: 'var(--glass-bg)' }}>
                     <img src={product.image_url} alt={product.name} className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500" />
+                    {discount > 0 && (
+                      <div className="absolute top-3 left-3 premium-badge bg-indigo-500/20 text-indigo-300 border-indigo-500/30 backdrop-blur-md">
+                        {discount}% OFF
+                      </div>
+                    )}
                   </div>
 
                   {/* Content */}
                   <div className="p-5 flex flex-col flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded text-xs font-bold text-yellow-400">
-                        ★ {avgRating}
+                      <div className="flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold text-yellow-400" style={{ background: 'rgba(250, 204, 21, 0.1)' }}>
+                        <Star size={12} fill="currentColor" /> {avgRating}
                       </div>
-                      <span className="text-xs text-gray-500">({productReviews.length})</span>
+                      <span className="text-xs" style={{ color: 'var(--text-muted)' }}>({productReviews.length})</span>
                     </div>
                     
-                    <h3 className="font-medium text-gray-200 text-sm mb-4 line-clamp-2 leading-relaxed flex-1 group-hover:text-indigo-300 transition-colors">{product.name}</h3>
+                    <h3 className="font-semibold text-lg mb-4 line-clamp-2 leading-snug flex-1 group-hover:text-indigo-400 transition-colors">{product.name}</h3>
                     
-                    <div className="flex items-end justify-between mt-auto">
+                    <div className="flex items-end justify-between mt-auto pt-4 border-t" style={{ borderColor: 'var(--glass-border)' }}>
                       <div>
-                        <div className="text-lg font-black text-white">₹{product.price.toLocaleString('en-IN')}</div>
+                        <div className="text-xl font-black text-white">₹{product.price.toLocaleString('en-IN')}</div>
                         {product.mrp > product.price && (
                           <div className="flex items-center gap-2 text-xs mt-1">
-                            <span className="text-gray-500 line-through">₹{product.mrp.toLocaleString('en-IN')}</span>
-                            <span className="text-emerald-400 font-bold">{discount}% OFF</span>
+                            <span className="line-through" style={{ color: 'var(--text-muted)' }}>₹{product.mrp.toLocaleString('en-IN')}</span>
                           </div>
                         )}
                       </div>
-                      <button onClick={(e) => handleAddToCart(product, e)} className="w-10 h-10 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-lg transition-colors">
-                        <ShoppingCart size={18} />
+                      <button onClick={(e) => handleAddToCart(product, e)} className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all group-hover:scale-110" style={{ background: 'var(--gradient-brand)' }}>
+                        <ShoppingCart size={18} className="text-white" />
                       </button>
                     </div>
                   </div>
@@ -330,13 +334,13 @@ export default function Shop() {
       {/* CART SLIDEOUT OVERLAY */}
       {showCart && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex justify-end">
-          <div className="w-full max-w-md bg-[#0c0c0e] border-l border-white/10 h-full flex flex-col shadow-2xl animate-fade-in-right">
-            <div className="p-6 border-b border-white/10 flex justify-between items-center">
+          <div className="w-full max-w-md h-full flex flex-col shadow-2xl animate-fade-in-right border-l" style={{ background: 'var(--bg-surface)', borderColor: 'var(--glass-border)' }}>
+            <div className="p-6 flex justify-between items-center border-b" style={{ borderColor: 'var(--glass-border)' }}>
               <h2 className="text-2xl font-bold flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400"><ShoppingCart size={20}/></div>
                 Your Cart
               </h2>
-              <button onClick={() => setShowCart(false)} className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"><X size={18}/></button>
+              <button onClick={() => setShowCart(false)} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors" style={{ background: 'var(--glass-bg)' }}><X size={18}/></button>
             </div>
             
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
@@ -347,8 +351,8 @@ export default function Shop() {
                 </div>
               ) : (
                 cart.map((item, idx) => (
-                  <div key={idx} className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
-                    <img src={item.image_url} alt={item.name} className="w-20 h-20 object-contain bg-white/10 rounded-xl p-2" />
+                  <div key={idx} className="flex gap-4 p-4 rounded-2xl border" style={{ background: 'var(--glass-bg)', borderColor: 'var(--glass-border)' }}>
+                    <img src={item.image_url} alt={item.name} className="w-20 h-20 object-contain rounded-xl p-2" style={{ background: 'rgba(255,255,255,0.05)' }} />
                     <div className="flex-1 flex flex-col justify-between">
                       <div className="flex justify-between items-start gap-2">
                         <h4 className="font-semibold text-sm line-clamp-2 text-gray-200">{item.name}</h4>
@@ -369,12 +373,12 @@ export default function Shop() {
             </div>
 
             {cart.length > 0 && (
-              <div className="p-6 border-t border-white/10 bg-white/5">
+              <div className="p-6 border-t" style={{ borderColor: 'var(--glass-border)', background: 'var(--glass-bg)' }}>
                 <div className="flex justify-between text-lg mb-6">
                   <span className="text-gray-400">Total</span>
                   <span className="font-black text-xl text-white">₹{cartTotal}</span>
                 </div>
-                <button onClick={buyNow} className="w-full py-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 font-bold text-lg hover:shadow-[0_0_30px_rgba(99,102,241,0.4)] transition-all">
+                <button onClick={buyNow} className="premium-btn premium-btn-primary w-full py-4 text-lg">
                   Proceed to Checkout
                 </button>
               </div>
@@ -386,13 +390,13 @@ export default function Shop() {
       {/* WISHLIST SLIDEOUT OVERLAY */}
       {showWishlist && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex justify-end">
-          <div className="w-full max-w-md bg-[#0c0c0e] border-l border-white/10 h-full flex flex-col shadow-2xl animate-fade-in-right">
-            <div className="p-6 border-b border-white/10 flex justify-between items-center">
+          <div className="w-full max-w-md h-full flex flex-col shadow-2xl animate-fade-in-right border-l" style={{ background: 'var(--bg-surface)', borderColor: 'var(--glass-border)' }}>
+            <div className="p-6 border-b flex justify-between items-center" style={{ borderColor: 'var(--glass-border)' }}>
               <h2 className="text-2xl font-bold flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center text-red-400"><Heart size={20}/></div>
                 Wishlist
               </h2>
-              <button onClick={() => setShowWishlist(false)} className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"><X size={18}/></button>
+              <button onClick={() => setShowWishlist(false)} className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors" style={{ background: 'var(--glass-bg)' }}><X size={18}/></button>
             </div>
             
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
@@ -403,8 +407,8 @@ export default function Shop() {
                 </div>
               ) : (
                 wishlist.map((item, idx) => (
-                  <div key={idx} className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
-                    <img src={item.image_url} alt={item.name} className="w-20 h-20 object-contain bg-white/10 rounded-xl p-2" />
+                  <div key={idx} className="flex gap-4 p-4 rounded-2xl border" style={{ background: 'var(--glass-bg)', borderColor: 'var(--glass-border)' }}>
+                    <img src={item.image_url} alt={item.name} className="w-20 h-20 object-contain rounded-xl p-2" style={{ background: 'rgba(255,255,255,0.05)' }} />
                     <div className="flex-1 flex flex-col justify-between">
                       <div className="flex justify-between items-start gap-2">
                         <h4 className="font-semibold text-sm line-clamp-2 text-gray-200">{item.name}</h4>
@@ -412,7 +416,7 @@ export default function Shop() {
                       </div>
                       <div className="flex justify-between items-center mt-2">
                         <p className="font-bold text-indigo-400">₹{item.price}</p>
-                        <button onClick={(e) => { handleAddToCart(item, e); toggleWishlist(item, e); }} className="px-4 py-1.5 bg-indigo-500/20 text-indigo-400 rounded-lg text-sm font-bold hover:bg-indigo-500/40 transition-colors">
+                        <button onClick={(e) => { handleAddToCart(item, e); toggleWishlist(item, e); }} className="premium-btn premium-btn-secondary px-4 py-1.5 text-sm">
                           Move to Cart
                         </button>
                       </div>
@@ -434,14 +438,13 @@ export default function Shop() {
         .animate-fade-in-right {
           animation: fadeInRight 0.3s ease-out forwards;
         }
-        /* Hide scrollbar for Chrome, Safari and Opera */
+        /* Hide scrollbar */
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
-        /* Hide scrollbar for IE, Edge and Firefox */
         .no-scrollbar {
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
       `}</style>
     </div>
