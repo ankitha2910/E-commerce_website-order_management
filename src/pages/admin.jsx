@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { LogOut, Package, ShoppingCart, Users, LayoutDashboard, Plus, Search, Grid, List, Edit, Trash2, Download, TrendingUp, AlertTriangle } from 'lucide-react';
+import { LogOut, Package, ShoppingCart, Users, LayoutDashboard, Plus, Search, Grid, List, Edit, Trash2, Download, TrendingUp, AlertTriangle, Menu, X } from 'lucide-react';
 import jsPDF from 'jspdf';
 
 const SUPABASE_URL = 'https://zzcrhiawxhrdwnwauape.supabase.co';
@@ -30,6 +30,7 @@ export default function App() {
   const [imagePreview, setImagePreview] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -208,18 +209,44 @@ export default function App() {
 
   return (
     <><GlobalStyle />
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc', color: '#0f172a', fontFamily: "'Inter', sans-serif" }}>
-      <div className="sidebar">
-        <div className="logo">NovaBoard</div>
-        <div className={`nav-item ${page === 'dashboard'? 'active' : ''}`} onClick={() => setPage('dashboard')}><LayoutDashboard size={20} /> Dashboard</div>
-        <div className={`nav-item ${page === 'products'? 'active' : ''}`} onClick={() => setPage('products')}><Package size={20} /> Products</div>
-        <div className={`nav-item ${page === 'orders'? 'active' : ''}`} onClick={() => setPage('orders')}><ShoppingCart size={20} /> Orders</div>
-        <div className={`nav-item ${page === 'customers'? 'active' : ''}`} onClick={() => setPage('customers')}><Users size={20} /> Customers</div>
+    {/* Mobile Sticky Top Header */}
+    <div className="mobile-header">
+      <div className="logo" style={{ marginBottom: 0, fontSize: 20 }}>NovaBoard</div>
+      <button 
+        className="mobile-menu-btn" 
+        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        aria-label="Toggle Navigation"
+      >
+        {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+      </button>
+    </div>
+
+    {/* Backdrop for mobile drawer */}
+    {mobileMenuOpen && (
+      <div className="sidebar-backdrop" onClick={() => setMobileMenuOpen(false)} />
+    )}
+
+    <div className="app-layout">
+      <div className={`sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
+          <div className="logo" style={{ marginBottom: 0 }}>NovaBoard</div>
+          <button 
+            className="mobile-close-btn" 
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Close sidebar"
+          >
+            <X size={20} />
+          </button>
+        </div>
+        <div className={`nav-item ${page === 'dashboard'? 'active' : ''}`} onClick={() => { setPage('dashboard'); setMobileMenuOpen(false); }}><LayoutDashboard size={20} /> Dashboard</div>
+        <div className={`nav-item ${page === 'products'? 'active' : ''}`} onClick={() => { setPage('products'); setMobileMenuOpen(false); }}><Package size={20} /> Products</div>
+        <div className={`nav-item ${page === 'orders'? 'active' : ''}`} onClick={() => { setPage('orders'); setMobileMenuOpen(false); }}><ShoppingCart size={20} /> Orders</div>
+        <div className={`nav-item ${page === 'customers'? 'active' : ''}`} onClick={() => { setPage('customers'); setMobileMenuOpen(false); }}><Users size={20} /> Customers</div>
         <div style={{ flex: 1 }}></div>
         {currentUser && (
           <div 
             className="nav-item" 
-            onClick={() => setShowProfileModal(true)}
+            onClick={() => { setShowProfileModal(true); setMobileMenuOpen(false); }}
             style={{ 
               marginTop: 'auto', 
               borderTop: '1px solid #e2e8f0', 
@@ -255,7 +282,7 @@ export default function App() {
             </div>
           </div>
         )}
-        <div className="nav-item" onClick={handleLogout} style={{ color: '#ef4444' }}><LogOut size={20} /> Logout</div>
+        <div className="nav-item" onClick={() => { handleLogout(); setMobileMenuOpen(false); }} style={{ color: '#ef4444' }}><LogOut size={20} /> Logout</div>
       </div>
       <div className="main">
         {page === 'dashboard' && <DashboardPage stats={stats} orders={orders} products={productData} />}
@@ -327,52 +354,200 @@ const CustomSelect = ({ value, onChange, options, placeholder, className, style,
 function GlobalStyle() {
   return <style>{`
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #0f172a; }
-   .sidebar { width: 260px; background: #ffffff; border-right: 1px solid #e2e8f0; padding: 24px; display: flex; flex-direction: column; position: fixed; height: 100vh; box-shadow: 2px 0 10px rgba(0,0,0,0.02); }
-   .logo { font-size: 28px; font-weight: 900; margin-bottom: 40px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-   .nav-item { padding: 14px 18px; margin: 6px 0; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 14px; transition: all 0.2s; font-weight: 600; color: #64748b; }
-   .nav-item:hover { background: #f1f5f9; color: #0f172a; transform: translateX(4px); }
-   .nav-item.active { background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; font-weight: 700; }
-   .main { flex: 1; padding: 32px; margin-left: 260px; background: #f8fafc; min-height: 100vh; }
-   .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
-   .card { background: #ffffff; border-radius: 20px; padding: 28px; box-shadow: 0 4px 12px -2px rgba(0,0,0,0.05), 0 2px 6px -1px rgba(0,0,0,0.02); transition: all 0.3s; border: 1px solid #e2e8f0; color: #0f172a; }
-   .card:hover { border-color: #cbd5e1; transform: translateY(-3px); box-shadow: 0 12px 24px -4px rgba(0,0,0,0.08); }
-   .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; margin-bottom: 32px; }
-   .stat-card { background: #ffffff; border-radius: 20px; padding: 28px; box-shadow: 0 4px 12px -2px rgba(0,0,0,0.05), 0 2px 6px -1px rgba(0,0,0,0.02); position: relative; overflow: hidden; border: 1px solid #e2e8f0; color: #0f172a; }
-   .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); }
-   .btn { padding: 12px 24px; border-radius: 12px; border: none; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 10px; transition: all 0.2s; font-size: 14px; color: #1e293b; background: #f1f5f9; }
-   .btn-primary { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25); }
-   .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35); }
-   .btn-danger { background: #fef2f2; color: #ef4444; border: 1px solid #fee2e2; }
-   .btn-danger:hover { background: #fee2e2; }
-   .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(6px); }
-   .modal-content { background: #ffffff; color: #0f172a; border-radius: 24px; padding: 36px; width: 90%; max-width: 580px; max-height: 90vh; overflow-y: auto; border: 1px solid #e2e8f0; box-shadow: 0 20px 40px -8px rgba(0,0,0,0.15); }
-    input, select, textarea { width: 100%; padding: 14px 18px; background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; border-radius: 12px; margin: 10px 0 18px; font-size: 15px; transition: all 0.2s; font-family: 'Inter'; }
+    body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #0f172a; overflow-x: hidden; width: 100%; }
+    .app-layout { display: flex; min-height: 100vh; background: #f8fafc; color: #0f172a; width: 100%; position: relative; }
+    .mobile-header { display: none; }
+    .mobile-close-btn { display: none; }
+    .sidebar-backdrop { display: none; }
+    .sidebar { width: 260px; background: #ffffff; border-right: 1px solid #e2e8f0; padding: 24px; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 50; top: 0; left: 0; box-shadow: 2px 0 10px rgba(0,0,0,0.02); }
+    .logo { font-size: 28px; font-weight: 900; margin-bottom: 40px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .nav-item { padding: 14px 18px; margin: 6px 0; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 14px; transition: all 0.2s; font-weight: 600; color: #64748b; }
+    .nav-item:hover { background: #f1f5f9; color: #0f172a; transform: translateX(4px); }
+    .nav-item.active { background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; font-weight: 700; }
+    .main { flex: 1; padding: 32px; margin-left: 260px; background: #f8fafc; min-height: 100vh; max-width: calc(100vw - 260px); width: calc(100vw - 260px); box-sizing: border-box; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+    .card { background: #ffffff; border-radius: 20px; padding: 28px; box-shadow: 0 4px 12px -2px rgba(0,0,0,0.05), 0 2px 6px -1px rgba(0,0,0,0.02); transition: all 0.3s; border: 1px solid #e2e8f0; color: #0f172a; max-width: 100%; box-sizing: border-box; }
+    .card:hover { border-color: #cbd5e1; transform: translateY(-3px); box-shadow: 0 12px 24px -4px rgba(0,0,0,0.08); }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 32px; }
+    .stat-card { background: #ffffff; border-radius: 20px; padding: 28px; box-shadow: 0 4px 12px -2px rgba(0,0,0,0.05), 0 2px 6px -1px rgba(0,0,0,0.02); position: relative; overflow: hidden; border: 1px solid #e2e8f0; color: #0f172a; }
+    .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); }
+    .dashboard-charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 28px; }
+    .dashboard-bottom-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+    .products-filter-bar { display: grid; grid-template-columns: 2fr 1fr 1fr auto auto; gap: 16px; margin-bottom: 28px; align-items: center; }
+    .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .btn { padding: 12px 24px; border-radius: 12px; border: none; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 10px; transition: all 0.2s; font-size: 14px; color: #1e293b; background: #f1f5f9; }
+    .btn-primary { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25); }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35); }
+    .btn-danger { background: #fef2f2; color: #ef4444; border: 1px solid #fee2e2; }
+    .btn-danger:hover { background: #fee2e2; }
+    .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(6px); }
+    .modal-content { background: #ffffff; color: #0f172a; border-radius: 24px; padding: 36px; width: 90%; max-width: 580px; max-height: 90vh; overflow-y: auto; border: 1px solid #e2e8f0; box-shadow: 0 20px 40px -8px rgba(0,0,0,0.15); }
+    input, select, textarea { width: 100%; padding: 14px 18px; background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; border-radius: 12px; margin: 10px 0 18px; font-size: 15px; transition: all 0.2s; font-family: 'Inter'; box-sizing: border-box; }
     input:focus, select:focus, textarea:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15); }
     table { width: 100%; border-collapse: collapse; color: #0f172a; }
     th, td { padding: 16px; text-align: left; border-bottom: 1px solid #f1f5f9; }
     th { font-weight: 800; color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 0.8px; background: #f8fafc; }
     tr:hover { background: #f8fafc; }
-   .badge { padding: 7px 16px; border-radius: 20px; font-size: 12px; font-weight: 800; }
-   .badge-success { background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
-   .badge-warning { background: #fef9c3; color: #ca8a04; border: 1px solid #fef08a; }
-   .badge-danger { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
-   .badge-info { background: #e0e7ff; color: #4f46e5; border: 1px solid #c7d2fe; }
-   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
-   .product-card { background: #ffffff; border-radius: 20px; overflow: hidden; transition: all 0.3s; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px -2px rgba(0,0,0,0.05); }
-   .product-card:hover { box-shadow: 0 12px 24px -4px rgba(0,0,0,0.08); transform: translateY(-4px); border-color: #cbd5e1; }
+    .badge { padding: 7px 16px; border-radius: 20px; font-size: 12px; font-weight: 800; display: inline-block; }
+    .badge-success { background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
+    .badge-warning { background: #fef9c3; color: #ca8a04; border: 1px solid #fef08a; }
+    .badge-danger { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+    .badge-info { background: #e0e7ff; color: #4f46e5; border: 1px solid #c7d2fe; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
+    .product-card { background: #ffffff; border-radius: 20px; overflow: hidden; transition: all 0.3s; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px -2px rgba(0,0,0,0.05); }
+    .product-card:hover { box-shadow: 0 12px 24px -4px rgba(0,0,0,0.08); transform: translateY(-4px); border-color: #cbd5e1; }
 
-   @media (max-width: 768px) {
-     .sidebar { width: 100%; height: auto; position: static; padding: 16px; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: center; border-right: none; border-bottom: 1px solid #e2e8f0; }
-     .sidebar .nav-item { padding: 8px 12px; margin: 4px; font-size: 14px; }
-     .sidebar .logo { margin-bottom: 0; font-size: 20px; }
-     .main { margin-left: 0; padding: 16px; }
-     .header { flex-direction: column; align-items: flex-start; gap: 16px; }
-     .stats-grid { grid-template-columns: 1fr; gap: 16px; }
-     .card { padding: 16px; overflow-x: auto; }
-     table { min-width: 600px; }
-     .modal-content { width: 95%; padding: 20px; }
-   }
+    @media (max-width: 768px) {
+      .app-layout { flex-direction: column; width: 100%; min-width: 0; }
+      .mobile-header {
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
+        background: #ffffff;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 0 16px;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 90;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+      }
+      .mobile-menu-btn {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: #0f172a;
+      }
+      .mobile-close-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 6px;
+        cursor: pointer;
+        color: #64748b;
+      }
+      .sidebar-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(3px);
+        z-index: 95;
+      }
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 270px;
+        max-width: 82vw;
+        height: 100vh;
+        background: #ffffff;
+        z-index: 100;
+        transform: translateX(-100%);
+        transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 4px 0 24px rgba(0,0,0,0.15);
+        border-right: 1px solid #e2e8f0;
+        overflow-y: auto;
+        padding: 20px 16px;
+      }
+      .sidebar.mobile-open {
+        transform: translateX(0);
+      }
+      .main {
+        margin-left: 0 !important;
+        padding: 16px !important;
+        padding-top: 76px !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        min-height: calc(100vh - 60px) !important;
+        box-sizing: border-box !important;
+        overflow-x: hidden !important;
+      }
+      .header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 12px !important;
+        margin-bottom: 20px !important;
+      }
+      .header h1 {
+        font-size: 26px !important;
+        margin-bottom: 4px !important;
+      }
+      .header p {
+        font-size: 13px !important;
+      }
+      .header .btn {
+        width: 100%;
+        justify-content: center;
+      }
+      .stats-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+        margin-bottom: 20px !important;
+      }
+      .stat-card {
+        padding: 18px !important;
+        border-radius: 16px !important;
+      }
+      .stat-card h3 {
+        font-size: 28px !important;
+      }
+      .card {
+        padding: 16px !important;
+        border-radius: 16px !important;
+        margin-bottom: 16px !important;
+      }
+      .card h3 {
+        font-size: 17px !important;
+        margin-bottom: 16px !important;
+      }
+      .dashboard-charts-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+        margin-bottom: 16px !important;
+      }
+      .dashboard-bottom-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+      }
+      .products-filter-bar {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+        margin-bottom: 18px !important;
+      }
+      .grid {
+        grid-template-columns: 1fr !important;
+        gap: 14px !important;
+      }
+      table {
+        min-width: 540px;
+      }
+      th, td {
+        padding: 12px 10px !important;
+        font-size: 13px !important;
+      }
+      .modal-content {
+        width: 92% !important;
+        padding: 20px 16px !important;
+        border-radius: 18px !important;
+        max-height: 88vh !important;
+      }
+      .modal-content h2 {
+        font-size: 20px !important;
+        margin-bottom: 18px !important;
+      }
+    }
   `}</style>;
 }
 
@@ -524,14 +699,14 @@ function DashboardPage({ stats, orders, products }) {
         </div>
       <div className="stat-card"><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 16 }}><div><p style={{ color: '#64748b', fontSize: 14, marginBottom: 10, fontWeight: 700 }}>Low Stock Alert</p><h3 style={{ fontSize: 40, fontWeight: 900, color: stats.lowStock > 0? '#ef4444' : '#10b981' }}>{stats.lowStock}</h3></div><div style={{ padding: 16, background: stats.lowStock > 0? 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)', borderRadius: 16 }}><AlertTriangle size={28} color="white" /></div></div><div style={{ display: 'flex', alignItems: 'center', gap: 8, color: stats.lowStock > 0? '#ef4444' : '#10b981', fontSize: 14, fontWeight: 700 }}><AlertTriangle size={18} /> {stats.lowStock > 0? 'Needs attention' : 'All stocked'}</div></div>
     </div>
-    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 24, marginBottom: 28 }}>
+    <div className="dashboard-charts-grid">
       <div className="card"><h3 style={{ marginBottom: 24, fontWeight: 800, fontSize: 20, color: '#0f172a' }}>Revenue Trend - Last 7 Days</h3><ResponsiveContainer width="100%" height={320}><BarChart data={chartData}><XAxis dataKey="date" stroke="#94a3b8" style={{ fontWeight: 600 }} /><YAxis stroke="#94a3b8" style={{ fontWeight: 600 }} /><Tooltip contentStyle={{ background: 'white', border: 'none', borderRadius: 16, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: 12 }} /><Bar dataKey="revenue" fill="url(#colorGradient)" radius={[10, 10, 0, 0]} /><defs><linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#667eea" stopOpacity={1} /><stop offset="100%" stopColor="#764ba2" stopOpacity={0.8} /></linearGradient></defs></BarChart></ResponsiveContainer></div>
       <div className="card"><h3 style={{ marginBottom: 24, fontWeight: 800, fontSize: 20, color: '#0f172a' }}>Products by Category</h3><ResponsiveContainer width="100%" height={320}><PieChart><Pie data={categoryData} cx="50%" cy="50%" outerRadius={90} fill="#8884d8" dataKey="value" label>{categoryData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}</Pie><Tooltip /></PieChart></ResponsiveContainer></div>
     </div>
-    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 24 }}>
-      <div className="card"><h3 style={{ marginBottom: 24, fontWeight: 800, fontSize: 20, color: '#0f172a' }}>Recent Orders</h3><table><thead><tr><th>Order ID</th><th>Customer</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody>{orders.slice(0, 5).map(order => (<tr key={order.id}><td style={{ fontWeight: 700 }}>#{order.id ? order.id.toString().slice(0, 8):order.id}</td><td>{order.customer_name}</td><td style={{ fontWeight: 800 }}>
+    <div className="dashboard-bottom-grid">
+      <div className="card"><h3 style={{ marginBottom: 24, fontWeight: 800, fontSize: 20, color: '#0f172a' }}>Recent Orders</h3><div className="table-responsive"><table><thead><tr><th>Order ID</th><th>Customer</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody>{orders.slice(0, 5).map(order => (<tr key={order.id}><td style={{ fontWeight: 700 }}>#{order.id ? order.id.toString().slice(0, 8):order.id}</td><td>{order.customer_name}</td><td style={{ fontWeight: 800 }}>
         ₹{order.total_amount || order.items?.reduce((sum, item) => sum + (item.price * item.qty), 0) || 0}
-        </td><td><span className={`badge ${order.status === 'Delivered'? 'badge-success' : order.status === 'Shipped'? 'badge-info' : order.status === 'Packed'? 'badge-warning' : 'badge-danger'}`}>{order.status}</span></td><td>{new Date(order.created_at).toLocaleDateString()}</td></tr>))}</tbody></table></div>
+        </td><td><span className={`badge ${order.status === 'Delivered'? 'badge-success' : order.status === 'Shipped'? 'badge-info' : order.status === 'Packed'? 'badge-warning' : 'badge-danger'}`}>{order.status}</span></td><td>{new Date(order.created_at).toLocaleDateString()}</td></tr>))}</tbody></table></div></div>
       <div className="card"><h3 style={{ marginBottom: 24, fontWeight: 800, fontSize: 20, color: '#ef4444', display: 'flex', alignItems: 'center', gap: 8 }}><AlertTriangle size={20} /> Low Stock</h3>
         <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
           <table><thead><tr><th>Product</th><th>Stock</th></tr></thead><tbody>
@@ -557,7 +732,7 @@ function DashboardPage({ stats, orders, products }) {
 function ProductsPage({ products, categories, productView, setProductView, searchTerm, setSearchTerm, categoryFilter, setCategoryFilter, statusFilter, setStatusFilter, onAdd, onEdit, onDelete }) { 
   return (<>
     <div className="header"><h1 style={{ fontSize: 40, fontWeight: 900, color: '#0f172a' }}>Products</h1><button className="btn btn-primary" onClick={onAdd}><Plus size={20} /> Add Product</button></div>
-    <div className="card"><div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr auto', gap: 16, marginBottom: 28 }}>
+    <div className="card"><div className="products-filter-bar">
       <div style={{ position: 'relative' }}><Search size={20} style={{ position: 'absolute', left: 16, top: 16, color: '#94a3b8' }} /><input type="text" placeholder="Search products..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ paddingLeft: 48, margin: 0 }} /></div>
       <CustomSelect 
         value={categoryFilter} 
@@ -574,13 +749,13 @@ function ProductsPage({ products, categories, productView, setProductView, searc
       <button className="btn" style={{ background: productView === 'table'? '#e2e8f0' : 'transparent', margin: 0, padding: '14px' }} onClick={() => setProductView('table')}><List size={20} /></button>
       <button className="btn" style={{ background: productView === 'grid'? '#e2e8f0' : 'transparent', margin: 0, padding: '14px' }} onClick={() => setProductView('grid')}><Grid size={20} /></button>
     </div>
-    {productView === 'table'? (<table><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
+    {productView === 'table'? (<div className="table-responsive"><table><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
       <tbody>{products.map(product => (<tr key={product.id}><td style={{ display: 'flex', alignItems: 'center', gap: 14 }}><img src={product.image_url || 'https://via.placeholder.com/60'} alt="" style={{ width: 60, height: 60, borderRadius: 14, objectFit: 'cover' }} /><div><p style={{ fontWeight: 800, fontSize: 15 }}>{product.name}</p><p style={{ fontSize: 13, color: '#64748b' }}>{product.description?.slice(0, 40)}...</p></div></td>
         <td style={{ fontWeight: 600 }}>{product.category}</td><td style={{ fontWeight: 800, fontSize: 16 }}>₹{product.price}</td>
         <td><span className={`badge ${product.stock_quantity < 5? 'badge-danger' : product.stock_quantity < 20? 'badge-warning' : 'badge-success'}`}>{product.stock_quantity} units</span></td>
         <td><span className={`badge ${product.status === 'active'? 'badge-success' : 'badge-danger'}`}>{product.status}</span></td>
         <td><button className="btn" style={{ padding: 10, marginRight: 10 }} onClick={() => onEdit(product)}><Edit size={18} /></button><button className="btn btn-danger" style={{ padding: 10 }} onClick={() => onDelete(product.id)}><Trash2 size={18} /></button></td>
-      </tr>))}</tbody></table>) : (<div className="grid">{products.map(product => (<div key={product.id} className="product-card">
+      </tr>))}</tbody></table></div>) : (<div className="grid">{products.map(product => (<div key={product.id} className="product-card">
         <img src={product.image_url || 'https://via.placeholder.com/400x300'} alt="" style={{ width: '100%', height: 220, objectFit: 'cover' }} />
         <div style={{ padding: 24 }}><h4 style={{ fontWeight: 800, marginBottom: 10, fontSize: 19, color: '#0f172a' }}>{product.name}</h4><p style={{ color: '#64748b', fontSize: 14, marginBottom: 16, height: 44, overflow: 'hidden' }}>{product.description}</p>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}><span style={{ fontSize: 28, fontWeight: 900, color: '#667eea' }}>₹{product.price}</span><span className={`badge ${product.status === 'active'? 'badge-success' : 'badge-danger'}`}>{product.status}</span></div>
@@ -620,7 +795,7 @@ function OrdersPage({ orders, customers, updateStatus, downloadInvoice, onAdd })
   return (<>
     {toastMsg && <div style={{ position: 'fixed', bottom: '40px', left: '50%', transform: 'translateX(-50%)', background: '#10b981', color: 'white', padding: '12px 24px', borderRadius: '8px', zIndex: 1000, fontWeight: 600, boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>{toastMsg}</div>}
     <div className="header"><h1 style={{ fontSize: 40, fontWeight: 900, color: '#0f172a' }}>Orders</h1><button className="btn btn-primary" onClick={onAdd}><Plus size={20} /> Create Order</button></div>
-    <div className="card"><table><thead><tr><th>Order ID</th><th>Customer</th><th>Amount</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+    <div className="card"><div className="table-responsive"><table><thead><tr><th>Order ID</th><th>Customer</th><th>Amount</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
       <tbody>{orders.map(order => {
         const colors = getColors(order.status || 'Pending');
         return (
@@ -654,7 +829,7 @@ function OrdersPage({ orders, customers, updateStatus, downloadInvoice, onAdd })
           <td>{new Date(order.created_at).toLocaleDateString()}</td>
           <td><button className="btn btn-primary" onClick={() => downloadInvoice(order)}><Download size={18} /> Invoice</button></td>
         </tr>)})}
-      </tbody></table></div>
+      </tbody></table></div></div>
   </>);
 }
 
