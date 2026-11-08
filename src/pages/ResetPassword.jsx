@@ -1,22 +1,38 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function ResetPassword() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if the user is actually in a recovery session
+    // 1. Listen for password recovery auth event
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'PASSWORD_RECOVERY' || session) {
+        setError('');
+      }
+    });
+
+    // 2. Check current session or recovery parameters in URL
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
+      const hash = window.location.hash || '';
+      const search = window.location.search || '';
+      const isRecovery = hash.includes('type=recovery') || hash.includes('access_token') || search.includes('code=');
+
+      if (!session && !isRecovery) {
         setError('Invalid or expired reset link. Please try resetting your password again.');
       }
     });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleUpdatePassword = async (e) => {
@@ -94,28 +110,48 @@ export default function ResetPassword() {
         <form onSubmit={handleUpdatePassword}>
           <div style={{ marginBottom: '16px' }}>
             <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#475569', marginBottom: '6px' }}>New Password</label>
-            <input 
-              type="password" 
-              placeholder="••••••••" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
-              required
-              style={{ width: '100%', padding: '14px', border: '2px solid #e2e8f0', borderRadius: '12px', boxSizing: 'border-box', outline: 'none', color: '#0f172a', background: '#f8fafc', fontSize: '15px' }}
-            />
+            <div style={{ position: 'relative' }}>
+              <input 
+                type={showPassword ? "text" : "password"} 
+                placeholder="••••••••" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+                required
+                style={{ width: '100%', padding: '14px 44px 14px 14px', border: '2px solid #e2e8f0', borderRadius: '12px', boxSizing: 'border-box', outline: 'none', color: '#0f172a', background: '#f8fafc', fontSize: '15px' }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
           <div style={{ marginBottom: '28px' }}>
             <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#475569', marginBottom: '6px' }}>Confirm New Password</label>
-            <input 
-              type="password" 
-              placeholder="••••••••" 
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              disabled={loading}
-              required
-              style={{ width: '100%', padding: '14px', border: '2px solid #e2e8f0', borderRadius: '12px', boxSizing: 'border-box', outline: 'none', color: '#0f172a', background: '#f8fafc', fontSize: '15px' }}
-            />
+            <div style={{ position: 'relative' }}>
+              <input 
+                type={showConfirmPassword ? "text" : "password"} 
+                placeholder="••••••••" 
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={loading}
+                required
+                style={{ width: '100%', padding: '14px 44px 14px 14px', border: '2px solid #e2e8f0', borderRadius: '12px', boxSizing: 'border-box', outline: 'none', color: '#0f172a', background: '#f8fafc', fontSize: '15px' }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
+                tabIndex={-1}
+              >
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
           <button 

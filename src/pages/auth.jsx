@@ -250,8 +250,9 @@ export default function Auth() {
 
     setLoading(true);
     try {
+      const siteOrigin = process.env.REACT_APP_SITE_URL || window.location.origin;
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/reset-password',
+        redirectTo: `${siteOrigin}/reset-password`,
       });
       if (error) {
         setError(error.message);
