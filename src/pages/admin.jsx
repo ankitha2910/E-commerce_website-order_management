@@ -197,7 +197,7 @@ export default function App() {
     doc.save(`Invoice-${invoiceNo}.pdf`);
   };
 
-  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--bg-main)' }}><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div><span style={{ marginLeft: 16, fontSize: 18, color: 'var(--text-muted)', fontWeight: 600 }}>Loading Dashboard...</span></div>;
+  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f8fafc' }}><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div><span style={{ marginLeft: 16, fontSize: 18, color: '#64748b', fontWeight: 600 }}>Loading Dashboard...</span></div>;
   if (!session) return <><GlobalStyle /><AuthPage /></>;
 
   const categories = [...new Set(productData.map(p => p.category))];
@@ -208,7 +208,7 @@ export default function App() {
 
   return (
     <><GlobalStyle />
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-main)', color: 'var(--text-main)', fontFamily: "'Inter', sans-serif" }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc', color: '#0f172a', fontFamily: "'Inter', sans-serif" }}>
       <div className="sidebar">
         <div className="logo">NovaBoard</div>
         <div className={`nav-item ${page === 'dashboard'? 'active' : ''}`} onClick={() => setPage('dashboard')}><LayoutDashboard size={20} /> Dashboard</div>
@@ -222,7 +222,7 @@ export default function App() {
             onClick={() => setShowProfileModal(true)}
             style={{ 
               marginTop: 'auto', 
-              borderTop: '1px solid rgba(255,255,255,0.1)', 
+              borderTop: '1px solid #e2e8f0', 
               paddingTop: '14px', 
               display: 'flex', 
               alignItems: 'center', 
@@ -246,16 +246,16 @@ export default function App() {
               {currentUser.username?.charAt(0).toUpperCase() || 'A'}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-              <span style={{ fontSize: '14px', fontWeight: '700', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+              <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
                 {currentUser.username}
               </span>
-              <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '500' }}>
+              <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '500' }}>
                 View Profile
               </span>
             </div>
           </div>
         )}
-        <div className="nav-item" onClick={handleLogout}><LogOut size={20} /> Logout</div>
+        <div className="nav-item" onClick={handleLogout} style={{ color: '#ef4444' }}><LogOut size={20} /> Logout</div>
       </div>
       <div className="main">
         {page === 'dashboard' && <DashboardPage stats={stats} orders={orders} products={productData} />}
@@ -327,42 +327,43 @@ const CustomSelect = ({ value, onChange, options, placeholder, className, style,
 function GlobalStyle() {
   return <style>{`
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Inter', sans-serif; background: var(--bg-main); color: var(--text-main); }
-   .sidebar { width: 260px; background: var(--bg-surface); border-right: 1px solid var(--glass-border); padding: 24px; display: flex; flex-direction: column; position: fixed; height: 100vh; }
-   .logo { font-size: 28px; font-weight: 900; margin-bottom: 40px; background: var(--gradient-brand); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: var(--shadow-glow); }
-   .nav-item { padding: 14px 18px; margin: 6px 0; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 14px; transition: all 0.2s; font-weight: 600; color: var(--text-muted); }
-   .nav-item:hover { background: rgba(255,255,255,0.05); color: white; transform: translateX(4px); }
-   .nav-item.active { background: rgba(99, 102, 241, 0.1); color: var(--primary-accent); border: 1px solid rgba(99, 102, 241, 0.2); }
-   .main { flex: 1; padding: 32px; margin-left: 260px; }
+    body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #0f172a; }
+   .sidebar { width: 260px; background: #ffffff; border-right: 1px solid #e2e8f0; padding: 24px; display: flex; flex-direction: column; position: fixed; height: 100vh; box-shadow: 2px 0 10px rgba(0,0,0,0.02); }
+   .logo { font-size: 28px; font-weight: 900; margin-bottom: 40px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+   .nav-item { padding: 14px 18px; margin: 6px 0; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 14px; transition: all 0.2s; font-weight: 600; color: #64748b; }
+   .nav-item:hover { background: #f1f5f9; color: #0f172a; transform: translateX(4px); }
+   .nav-item.active { background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; font-weight: 700; }
+   .main { flex: 1; padding: 32px; margin-left: 260px; background: #f8fafc; min-height: 100vh; }
    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
-   .card { background: var(--bg-surface); border-radius: 20px; padding: 28px; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); transition: all 0.3s; border: 1px solid var(--glass-border); }
-   .card:hover { border-color: rgba(99, 102, 241, 0.2); transform: translateY(-4px); }
+   .card { background: #ffffff; border-radius: 20px; padding: 28px; box-shadow: 0 4px 12px -2px rgba(0,0,0,0.05), 0 2px 6px -1px rgba(0,0,0,0.02); transition: all 0.3s; border: 1px solid #e2e8f0; color: #0f172a; }
+   .card:hover { border-color: #cbd5e1; transform: translateY(-3px); box-shadow: 0 12px 24px -4px rgba(0,0,0,0.08); }
    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; margin-bottom: 32px; }
-   .stat-card { background: var(--bg-surface); border-radius: 20px; padding: 28px; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); position: relative; overflow: hidden; border: 1px solid var(--glass-border); }
-   .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: var(--gradient-brand); }
-   .btn { padding: 12px 24px; border-radius: 12px; border: none; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 10px; transition: all 0.2s; font-size: 14px; color: white; }
-   .btn-primary { background: var(--gradient-brand); box-shadow: var(--shadow-glow); }
-   .btn-primary:hover { transform: translateY(-2px); box-shadow: var(--shadow-glow-strong); }
-   .btn-danger { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
-   .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(8px); }
-   .modal-content { background: var(--bg-surface); color: white; border-radius: 24px; padding: 36px; width: 90%; max-width: 580px; max-height: 90vh; overflow-y: auto; border: 1px solid var(--glass-border); box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
-    input, select, textarea { width: 100%; padding: 14px 18px; background: rgba(255,255,255,0.03); color: white; border: 1px solid var(--glass-border); border-radius: 12px; margin: 10px 0 18px; font-size: 15px; transition: all 0.2s; font-family: 'Inter'; }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary-accent); box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2); }
-    table { width: 100%; border-collapse: collapse; color: var(--text-main); }
-    th, td { padding: 16px; text-align: left; border-bottom: 1px solid var(--glass-border); }
-    th { font-weight: 800; color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.8px; }
-    tr:hover { background: rgba(255,255,255,0.02); }
+   .stat-card { background: #ffffff; border-radius: 20px; padding: 28px; box-shadow: 0 4px 12px -2px rgba(0,0,0,0.05), 0 2px 6px -1px rgba(0,0,0,0.02); position: relative; overflow: hidden; border: 1px solid #e2e8f0; color: #0f172a; }
+   .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); }
+   .btn { padding: 12px 24px; border-radius: 12px; border: none; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 10px; transition: all 0.2s; font-size: 14px; color: #1e293b; background: #f1f5f9; }
+   .btn-primary { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25); }
+   .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35); }
+   .btn-danger { background: #fef2f2; color: #ef4444; border: 1px solid #fee2e2; }
+   .btn-danger:hover { background: #fee2e2; }
+   .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(6px); }
+   .modal-content { background: #ffffff; color: #0f172a; border-radius: 24px; padding: 36px; width: 90%; max-width: 580px; max-height: 90vh; overflow-y: auto; border: 1px solid #e2e8f0; box-shadow: 0 20px 40px -8px rgba(0,0,0,0.15); }
+    input, select, textarea { width: 100%; padding: 14px 18px; background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; border-radius: 12px; margin: 10px 0 18px; font-size: 15px; transition: all 0.2s; font-family: 'Inter'; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15); }
+    table { width: 100%; border-collapse: collapse; color: #0f172a; }
+    th, td { padding: 16px; text-align: left; border-bottom: 1px solid #f1f5f9; }
+    th { font-weight: 800; color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 0.8px; background: #f8fafc; }
+    tr:hover { background: #f8fafc; }
    .badge { padding: 7px 16px; border-radius: 20px; font-size: 12px; font-weight: 800; }
-   .badge-success { background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.2); }
-   .badge-warning { background: rgba(234, 179, 8, 0.1); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.2); }
-   .badge-danger { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); }
-   .badge-info { background: rgba(99, 102, 241, 0.1); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.2); }
+   .badge-success { background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
+   .badge-warning { background: #fef9c3; color: #ca8a04; border: 1px solid #fef08a; }
+   .badge-danger { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+   .badge-info { background: #e0e7ff; color: #4f46e5; border: 1px solid #c7d2fe; }
    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
-   .product-card { background: var(--bg-surface); border-radius: 20px; overflow: hidden; transition: all 0.3s; border: 1px solid var(--glass-border); }
-   .product-card:hover { box-shadow: var(--shadow-glow); transform: translateY(-6px); border-color: rgba(99, 102, 241, 0.3); }
+   .product-card { background: #ffffff; border-radius: 20px; overflow: hidden; transition: all 0.3s; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px -2px rgba(0,0,0,0.05); }
+   .product-card:hover { box-shadow: 0 12px 24px -4px rgba(0,0,0,0.08); transform: translateY(-4px); border-color: #cbd5e1; }
 
    @media (max-width: 768px) {
-     .sidebar { width: 100%; height: auto; position: static; padding: 16px; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: center; border-right: none; border-bottom: 1px solid var(--glass-border); }
+     .sidebar { width: 100%; height: auto; position: static; padding: 16px; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: center; border-right: none; border-bottom: 1px solid #e2e8f0; }
      .sidebar .nav-item { padding: 8px 12px; margin: 4px; font-size: 14px; }
      .sidebar .logo { margin-bottom: 0; font-size: 20px; }
      .main { margin-left: 0; padding: 16px; }
@@ -374,8 +375,6 @@ function GlobalStyle() {
    }
   `}</style>;
 }
-
-// Remaining components same as yours - AuthPage, DashboardPage, ProductsPage, OrdersPage, CustomersPage, CustomerModal, OrderModal, CustomerDetailModal
 
 function ProductModal({ product, categories, onSave, onClose, imageFile, setImageFile, imagePreview, setImagePreview }) {
   const [form, setForm] = useState(product || { name: '', description: '', price: '', stock_quantity: '', category: categories[0] || '', status: 'active', image_url: '' });
