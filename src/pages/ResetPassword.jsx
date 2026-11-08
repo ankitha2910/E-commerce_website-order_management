@@ -101,7 +101,7 @@ export default function ResetPassword() {
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
               required
-              style={{ width: '100%', padding: '14px', border: '2px solid #e2e8f0', borderRadius: '12px', boxSizing: 'border-box', outline: 'none' }}
+              style={{ width: '100%', padding: '14px', border: '2px solid #e2e8f0', borderRadius: '12px', boxSizing: 'border-box', outline: 'none', color: '#0f172a', background: '#f8fafc', fontSize: '15px' }}
             />
           </div>
 
@@ -114,7 +114,7 @@ export default function ResetPassword() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               disabled={loading}
               required
-              style={{ width: '100%', padding: '14px', border: '2px solid #e2e8f0', borderRadius: '12px', boxSizing: 'border-box', outline: 'none' }}
+              style={{ width: '100%', padding: '14px', border: '2px solid #e2e8f0', borderRadius: '12px', boxSizing: 'border-box', outline: 'none', color: '#0f172a', background: '#f8fafc', fontSize: '15px' }}
             />
           </div>
 

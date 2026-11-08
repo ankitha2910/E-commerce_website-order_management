@@ -97,7 +97,7 @@ export default function CustomerProfileEdit() {
                   value={formData.username} 
                   onChange={(e) => setFormData({...formData, username: e.target.value})} 
                   placeholder="John Doe"
-                  style={{ width: '100%', padding: '12px 16px', borderRadius: '8px', border: '2px solid #e2e8f0', fontSize: '15px', outline: 'none', transition: 'border-color 0.2s', background: '#f8fafc' }} 
+                  style={{ width: '100%', padding: '12px 16px', borderRadius: '8px', border: '2px solid #e2e8f0', fontSize: '15px', outline: 'none', transition: 'border-color 0.2s', background: '#f8fafc', color: '#0f172a' }} 
                   onFocus={(e) => e.target.style.borderColor = '#4f46e5'}
                   onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
                   required
@@ -111,7 +111,7 @@ export default function CustomerProfileEdit() {
                   value={formData.mobile_number} 
                   onChange={(e) => setFormData({...formData, mobile_number: e.target.value})} 
                   placeholder="+1 (555) 000-0000"
-                  style={{ width: '100%', padding: '12px 16px', borderRadius: '8px', border: '2px solid #e2e8f0', fontSize: '15px', outline: 'none', transition: 'border-color 0.2s', background: '#f8fafc' }} 
+                  style={{ width: '100%', padding: '12px 16px', borderRadius: '8px', border: '2px solid #e2e8f0', fontSize: '15px', outline: 'none', transition: 'border-color 0.2s', background: '#f8fafc', color: '#0f172a' }} 
                   onFocus={(e) => e.target.style.borderColor = '#4f46e5'}
                   onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
                 />
@@ -129,7 +129,7 @@ export default function CustomerProfileEdit() {
               <textarea 
                 value={formData.address} 
                 onChange={(e) => setFormData({...formData, address: e.target.value})} 
-                style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '2px solid #e2e8f0', fontSize: '15px', outline: 'none', minHeight: '120px', resize: 'vertical', transition: 'border-color 0.2s', background: '#f8fafc', fontFamily: "'Inter', sans-serif" }} 
+                style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '2px solid #e2e8f0', fontSize: '15px', outline: 'none', minHeight: '120px', resize: 'vertical', transition: 'border-color 0.2s', background: '#f8fafc', color: '#0f172a', fontFamily: "'Inter', sans-serif" }} 
                 onFocus={(e) => e.target.style.borderColor = '#4f46e5'}
                 onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
                 placeholder="E.g. 123 Commerce Avenue, Tech District, CA 90210"

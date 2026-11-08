@@ -182,6 +182,7 @@ export default function Login() {
           outline: none;
           transition: all 0.2s ease;
           background: #f8fafc;
+          color: #0f172a;
         }
         .text-input:focus {
           border-color: #6366f1;

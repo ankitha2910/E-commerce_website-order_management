@@ -160,20 +160,20 @@ export default function Checkout() {
                     placeholder="Full Name" 
                     value={name}
                     onChange={(e)=>setName(e.target.value)}
-                    style={{ flex: 1, padding: '12px', border: '1px solid #E0E0E0', borderRadius: '2px', outline: 'none', fontSize: '14px' }}
+                    style={{ flex: 1, padding: '12px', border: '1px solid #E0E0E0', borderRadius: '2px', outline: 'none', fontSize: '14px', color: '#0f172a' }}
                   />
                   <input 
                     placeholder="10-digit Mobile Number" 
                     value={phone}
                     onChange={(e)=>setPhone(e.target.value)}
-                    style={{ flex: 1, padding: '12px', border: '1px solid #E0E0E0', borderRadius: '2px', outline: 'none', fontSize: '14px' }}
+                    style={{ flex: 1, padding: '12px', border: '1px solid #E0E0E0', borderRadius: '2px', outline: 'none', fontSize: '14px', color: '#0f172a' }}
                   />
                 </div>
                 <textarea 
                   placeholder="Address (Area and Street)" 
                   value={address}
                   onChange={(e)=>setAddress(e.target.value)}
-                  style={{ width: '100%', padding: '12px', border: '1px solid #E0E0E0', borderRadius: '2px', outline: 'none', minHeight: '80px', fontSize: '14px', boxSizing: 'border-box', marginBottom: '24px' }}
+                  style={{ width: '100%', padding: '12px', border: '1px solid #E0E0E0', borderRadius: '2px', outline: 'none', minHeight: '80px', fontSize: '14px', boxSizing: 'border-box', marginBottom: '24px', color: '#0f172a' }}
                 />
                 <button 
                   onClick={handleDeliverHere}
@@ -356,17 +356,17 @@ export default function Checkout() {
                 <form onSubmit={handlePaymentSubmit}>
                   <div style={{ marginBottom: '16px' }}>
                     <label style={{ display: 'block', fontSize: '12px', color: '#878787', marginBottom: '8px', textTransform: 'uppercase', fontWeight: 'bold' }}>Card Number</label>
-                    <input type="text" placeholder="XXXX XXXX XXXX XXXX" value={cardNumber} onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, '').slice(0,16))} required style={{ width: '100%', padding: '12px', border: '1px solid #e0e0e0', borderRadius: '6px', fontSize: '16px', outline: 'none' }} />
+                    <input type="text" placeholder="XXXX XXXX XXXX XXXX" value={cardNumber} onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, '').slice(0,16))} required style={{ width: '100%', padding: '12px', border: '1px solid #e0e0e0', borderRadius: '6px', fontSize: '16px', outline: 'none', color: '#0f172a' }} />
                   </div>
                   
                   <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
                     <div style={{ flex: 1 }}>
                       <label style={{ display: 'block', fontSize: '12px', color: '#878787', marginBottom: '8px', textTransform: 'uppercase', fontWeight: 'bold' }}>Expiry (MM/YY)</label>
-                      <input type="text" placeholder="MM/YY" value={expiry} onChange={(e) => setExpiry(e.target.value)} required style={{ width: '100%', padding: '12px', border: '1px solid #e0e0e0', borderRadius: '6px', fontSize: '16px', outline: 'none' }} />
+                      <input type="text" placeholder="MM/YY" value={expiry} onChange={(e) => setExpiry(e.target.value)} required style={{ width: '100%', padding: '12px', border: '1px solid #e0e0e0', borderRadius: '6px', fontSize: '16px', outline: 'none', color: '#0f172a' }} />
                     </div>
                     <div style={{ flex: 1 }}>
                       <label style={{ display: 'block', fontSize: '12px', color: '#878787', marginBottom: '8px', textTransform: 'uppercase', fontWeight: 'bold' }}>CVV</label>
-                      <input type="password" placeholder="•••" value={cvv} onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0,3))} required style={{ width: '100%', padding: '12px', border: '1px solid #e0e0e0', borderRadius: '6px', fontSize: '16px', outline: 'none', letterSpacing: '2px' }} />
+                      <input type="password" placeholder="•••" value={cvv} onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0,3))} required style={{ width: '100%', padding: '12px', border: '1px solid #e0e0e0', borderRadius: '6px', fontSize: '16px', outline: 'none', letterSpacing: '2px', color: '#0f172a' }} />
                     </div>
                   </div>
 
